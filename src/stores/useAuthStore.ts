@@ -14,6 +14,7 @@ interface AuthState {
   setInitialized: (isInitialized: boolean) => void;
   setFamily: (family: Family | null) => void;
   updateUser: (data: Partial<AuthUser>) => void;
+  updateFamily: (data: Partial<Family>) => void;
 }
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -55,6 +56,11 @@ export const useAuthStore = create<AuthState>()(
       updateUser: (data) => {
         set((state) => ({
           user: state.user ? { ...state.user, ...data } : null,
+        }));
+      },
+      updateFamily: (data) => {
+        set((state) => ({
+          family: state.family ? { ...state.family, ...data } : null,
         }));
       },
     }),

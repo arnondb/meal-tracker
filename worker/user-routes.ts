@@ -110,6 +110,32 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     await new AuthUserEntity(c.env, user.token, 'token').save(updatedUser);
     return ok(c, targetFamily);
   });
+  // FAMILY MANAGEMENT
+  protectedRoutes.get('/api/family/members', async (c) => {
+    const user = c.get('user');
+    if (!user.familyId) {
+      return ok(c, []);
+    }
+    const { items: allUsers } = await AuthUserEntity.list(c.env);
+    const familyMembers = allUsers
+      .filter(u => u.familyId === user.familyId)
+      .map(({ id, name, email }) => ({ id, name, email }));
+    return ok(c, familyMembers);
+  });
+  protectedRoutes.post('/api/family/regenerate-code', async (c) => {
+    const user = c.get('user');
+    if (!user.familyId) {
+      return bad(c, 'User is not in a family.');
+    }
+    const familyEntity = new FamilyEntity(c.env, user.familyId);
+    if (!(await familyEntity.exists())) {
+      return notFound(c, 'Family not found.');
+    }
+    const newJoinCode = crypto.randomUUID().substring(0, 8).toUpperCase();
+    await familyEntity.patch({ joinCode: newJoinCode });
+    const updatedFamily = await familyEntity.getState();
+    return ok(c, updatedFamily);
+  });
   // MEALS
   protectedRoutes.get('/api/meals', async (c) => {
     const user = c.get('user');

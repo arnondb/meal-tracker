@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Loader2, User as UserIcon, Save } from 'lucide-react';
+import { Plus, Trash2, Loader2, User as UserIcon, Save, Users, RefreshCw } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,23 +12,29 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
-import { Preset, AuthUser } from '@shared/types';
+import { Preset, AuthUser, Family } from '@shared/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+type PublicUser = Pick<AuthUser, 'id' | 'name' | 'email'>;
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
 });
 type ProfileFormData = z.infer<typeof profileSchema>;
 export function SettingsPage() {
   const user = useAuthStore((s) => s.user);
+  const family = useAuthStore((s) => s.family);
   const updateUser = useAuthStore((s) => s.updateUser);
+  const updateFamily = useAuthStore((s) => s.updateFamily);
   const [presets, setPresets] = useState<Preset[]>([]);
+  const [familyMembers, setFamilyMembers] = useState<PublicUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newPresetName, setNewPresetName] = useState('');
   const [isSubmittingPreset, setIsSubmittingPreset] = useState(false);
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
+  const [isRegeneratingCode, setIsRegeneratingCode] = useState(false);
+  const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
   const {
     register,
     handleSubmit,
@@ -43,18 +49,22 @@ export function SettingsPage() {
     }
   }, [user, reset]);
   useEffect(() => {
-    const fetchPresets = async () => {
+    const fetchData = async () => {
       setIsLoading(true);
       try {
-        const fetchedPresets = await api<Preset[]>('/api/presets');
+        const [fetchedPresets, fetchedMembers] = await Promise.all([
+          api<Preset[]>('/api/presets'),
+          api<PublicUser[]>('/api/family/members'),
+        ]);
         setPresets(fetchedPresets);
+        setFamilyMembers(fetchedMembers);
       } catch (error) {
-        toast.error('Failed to load meal pre-sets.');
+        toast.error('Failed to load settings data.');
       } finally {
         setIsLoading(false);
       }
     };
-    fetchPresets();
+    fetchData();
   }, []);
   const onProfileSubmit = async (data: ProfileFormData) => {
     try {
@@ -93,7 +103,7 @@ export function SettingsPage() {
   const handleDeletePreset = (id: string) => {
     setDeletingPresetId(id);
   };
-  const confirmDelete = async () => {
+  const confirmDeletePreset = async () => {
     if (!deletingPresetId) return;
     try {
       await api(`/api/presets/${deletingPresetId}`, { method: 'DELETE' });
@@ -105,13 +115,26 @@ export function SettingsPage() {
       setDeletingPresetId(null);
     }
   };
+  const handleRegenerateCode = async () => {
+    setIsRegeneratingCode(true);
+    try {
+      const updatedFamily = await api<Family>('/api/family/regenerate-code', { method: 'POST' });
+      updateFamily(updatedFamily);
+      toast.success('New join code generated!');
+    } catch (error) {
+      toast.error('Failed to generate new code.');
+    } finally {
+      setIsRegeneratingCode(false);
+      setShowRegenerateConfirm(false);
+    }
+  };
   return (
     <AppLayout>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-8 md:py-10 lg:py-12">
           <header className="mb-8">
             <h1 className="text-4xl font-heading font-bold tracking-tight text-foreground">Settings</h1>
-            <p className="mt-2 text-lg text-muted-foreground">Manage your profile and custom meal pre-sets.</p>
+            <p className="mt-2 text-lg text-muted-foreground">Manage your profile, family, and custom meal pre-sets.</p>
           </header>
           <div className="grid gap-12">
             <Card>
@@ -144,6 +167,48 @@ export function SettingsPage() {
                     </Button>
                   </div>
                 </form>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-brand" />
+                  Family Management
+                </CardTitle>
+                <CardDescription>View members and manage your family group.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h3 className="font-semibold mb-2">Family Members ({familyMembers.length})</h3>
+                  <div className="space-y-3">
+                    {isLoading ? (
+                      Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-md" />)
+                    ) : (
+                      familyMembers.map(member => (
+                        <div key={member.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
+                          <Avatar>
+                            <AvatarImage src={`https://api.dicebear.com/8.x/initials/svg?seed=${member.name}`} />
+                            <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{member.name}</p>
+                            <p className="text-sm text-muted-foreground">{member.email}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2">Join Code</h3>
+                  <div className="flex items-center justify-between p-3 rounded-md border bg-muted/30">
+                    <span className="font-mono text-lg tracking-widest">{family?.joinCode}</span>
+                    <Button variant="secondary" onClick={() => setShowRegenerateConfirm(true)}>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Regenerate
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
             <div className="space-y-8">
@@ -219,7 +284,24 @@ export function SettingsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDeletePreset} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={showRegenerateConfirm} onOpenChange={setShowRegenerateConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Regenerate Join Code?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will invalidate the old join code. Family members will need the new code to invite others. Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRegenerateCode} disabled={isRegeneratingCode}>
+              {isRegeneratingCode && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Yes, Regenerate
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
