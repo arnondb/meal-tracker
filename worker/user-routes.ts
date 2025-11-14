@@ -25,8 +25,8 @@ export function userRoutes(app: Hono<{ Bindings: Env; Variables: AuthVariables }
     const familyId = crypto.randomUUID();
     const joinCode = crypto.randomUUID().substring(0, 8).toUpperCase();
     // Create new family
-    const family = new FamilyEntity(c.env, familyId);
-    await family.save({ id: familyId, joinCode });
+    const family: Family = { id: familyId, joinCode };
+    await FamilyEntity.create(c.env, family);
     // Create new user
     const newUser: AuthUser = {
       id: userId,
