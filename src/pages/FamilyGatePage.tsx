@@ -21,7 +21,6 @@ export function FamilyGatePage() {
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const family = useAuthStore(s => s.family);
-  const setFamily = useAuthStore(s => s.setFamily);
   const logout = useAuthStore(s => s.logout);
   const checkAuth = useAuthStore(s => s.checkAuth);
   const {
@@ -66,9 +65,9 @@ export function FamilyGatePage() {
           <div className="grid md:grid-cols-2 gap-8">
             <Card>
               <CardHeader>
-                <CardTitle>Create or Share a Family</CardTitle>
+                <CardTitle>Your Family Group</CardTitle>
                 <CardDescription>
-                  Your family group has been created. Share this code with others to invite them.
+                  Share this code with others to invite them to your family group.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
