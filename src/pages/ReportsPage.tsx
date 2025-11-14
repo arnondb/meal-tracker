@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { format, subDays, parseISO } from 'date-fns';
-import { Calendar as CalendarIcon, BarChart2, Search, UtensilsCrossed } from 'lucide-react';
+import { Calendar as CalendarIcon, BarChart2, Search, UtensilsCrossed, Download } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -14,6 +14,7 @@ import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
 import { Meal } from '@shared/types';
 import { cn } from '@/lib/utils';
+import { exportToCsv } from '@/lib/csv-exporter';
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 export function ReportsPage() {
   const [date, setDate] = useState<DateRange | undefined>({
@@ -53,6 +54,16 @@ export function ReportsPage() {
     }, {} as Record<string, number>);
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [meals]);
+  const handleExport = () => {
+    if (!date?.from || !date?.to) {
+      toast.warning('Cannot export without a valid date range.');
+      return;
+    }
+    const fromDate = format(date.from, 'yyyy-MM-dd');
+    const toDate = format(date.to, 'yyyy-MM-dd');
+    const filename = `ChronoPlate_Report_${fromDate}_to_${toDate}.csv`;
+    exportToCsv(meals, filename);
+  };
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -101,6 +112,10 @@ export function ReportsPage() {
               <Button onClick={fetchMeals} disabled={isLoading} className="w-full sm:w-auto bg-brand hover:bg-brand/90 text-brand-foreground">
                 <Search className="mr-2 h-4 w-4" />
                 {isLoading ? 'Searching...' : 'Search'}
+              </Button>
+              <Button onClick={handleExport} disabled={isLoading || meals.length === 0} variant="outline" className="w-full sm:w-auto">
+                <Download className="mr-2 h-4 w-4" />
+                Export CSV
               </Button>
             </div>
           </Card>
@@ -174,7 +189,7 @@ export function ReportsPage() {
                         <Card>
                           <CardContent className="p-4 flex justify-between items-center">
                             <div>
-                              <p className="font-semibold">{meal.description}</p>
+                              <p className="font-semibold">{meal.description || (meal.type === 'Other' ? meal.customType : meal.type)}</p>
                               <p className="text-sm text-muted-foreground">
                                 {meal.type === 'Other' ? meal.customType : meal.type}
                               </p>
