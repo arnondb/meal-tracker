@@ -33,6 +33,7 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     await new AuthUserEntity(c.env, userId, 'id').save(newUser);
     await new AuthUserEntity(c.env, body.email, 'email').save(newUser);
     await new AuthUserEntity(c.env, token, 'token').save(newUser);
+    await new Index(c.env, AuthUserEntity.indexName).add(userId);
     return ok(c, { token });
   });
   app.post('/api/auth/login', async (c) => {
