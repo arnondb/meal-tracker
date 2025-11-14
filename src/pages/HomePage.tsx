@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isToday } from 'date-fns';
 import { UtensilsCrossed, Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { create } from 'zustand';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -79,6 +79,9 @@ export function HomePage() {
     newDate.setDate(newDate.getDate() + amount);
     setCurrentDate(newDate);
   };
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
   const sortedMeals = useMemo(() => meals.slice().sort((a, b) => parseISO(a.eatenAt).getTime() - parseISO(b.eatenAt).getTime()), [meals]);
   return (
     <AppLayout>
@@ -94,6 +97,7 @@ export function HomePage() {
                 <Button variant="ghost" size="icon" onClick={() => changeDate(-1)}><ChevronLeft className="h-4 w-4" /></Button>
                 <span className="font-semibold text-lg text-brand">{format(currentDate, 'MMMM d, yyyy')}</span>
                 <Button variant="ghost" size="icon" onClick={() => changeDate(1)}><ChevronRight className="h-4 w-4" /></Button>
+                <Button variant="outline" size="sm" onClick={goToToday} disabled={isToday(currentDate)}>Today</Button>
               </div>
             </div>
             <Button onClick={handleAddMeal} className="bg-brand hover:bg-brand/90 text-brand-foreground">
