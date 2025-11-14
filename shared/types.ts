@@ -24,7 +24,12 @@ export type MealType = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack' | 'Other';
 export interface Meal {
   id: string;
   description: string;
-  type: MealType;
+  type: MealType | string; // Allow custom strings from presets
   customType?: string;
   eatenAt: string; // ISO 8601 string
+}
+// ChronoPlate Preset type
+export interface Preset {
+  id: string;
+  name: string;
 }

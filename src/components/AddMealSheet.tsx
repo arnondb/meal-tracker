@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { format, parse, set } from 'date-fns';
+import { format, set } from 'date-fns';
 import { create } from 'zustand';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
@@ -11,10 +11,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/lib/api-client';
-import { Meal, MealType } from '@shared/types';
+import { Meal, MealType, Preset } from '@shared/types';
 const mealSchema = z.object({
   description: z.string().min(1, 'Description is required'),
-  type: z.enum(['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Other']),
+  type: z.string().min(1, 'Meal type is required'),
   customType: z.string().optional(),
   time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:mm)'),
 }).refine(data => data.type !== 'Other' || (data.customType && data.customType.length > 0), {
@@ -27,15 +27,11 @@ type MealStore = {
   updateMeal: (meal: Meal) => void;
 };
 // This is a simplified selector from the HomePage store.
-// In a real app, you might use a more robust state manager or context.
 const useMealStore = create<MealStore>(() => ({
   addMeal: () => {},
   updateMeal: () => {},
 }));
-// We need to get the store from the HomePage to connect actions.
-// This is a trick to avoid prop drilling, but context would be better for larger apps.
 if (typeof window !== 'undefined') {
-  // This will fail if the store is not yet created, but it's a simple way to link them.
   try {
     const mainStore = (window as any).__ZUSTAND_STORES__.MealStore;
     if (mainStore) {
@@ -43,7 +39,7 @@ if (typeof window !== 'undefined') {
       mainStore.subscribe(useMealStore.setState);
     }
   } catch (e) {
-    // Store not found, this is fine, it will be populated later.
+    // Store not found, this is fine.
   }
 }
 interface AddMealSheetProps {
@@ -52,8 +48,10 @@ interface AddMealSheetProps {
   meal: Meal | null;
   currentDate: Date;
 }
+const defaultMealTypes: MealType[] = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate }: AddMealSheetProps) {
   const { addMeal, updateMeal } = useMealStore.getState();
+  const [presets, setPresets] = useState<Preset[]>([]);
   const { register, handleSubmit, control, watch, reset, formState: { errors, isSubmitting } } = useForm<MealFormData>({
     resolver: zodResolver(mealSchema),
     defaultValues: {
@@ -65,20 +63,31 @@ export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate }: AddMealSh
   });
   const selectedType = watch('type');
   useEffect(() => {
-    if (meal) {
-      reset({
-        description: meal.description,
-        type: meal.type,
-        customType: meal.customType || '',
-        time: format(new Date(meal.eatenAt), 'HH:mm'),
-      });
-    } else {
-      reset({
-        description: '',
-        type: 'Breakfast',
-        customType: '',
-        time: format(new Date(), 'HH:mm'),
-      });
+    if (isOpen) {
+      const fetchPresets = async () => {
+        try {
+          const fetchedPresets = await api<Preset[]>('/api/presets');
+          setPresets(fetchedPresets);
+        } catch (error) {
+          toast.error('Could not load meal pre-sets.');
+        }
+      };
+      fetchPresets();
+      if (meal) {
+        reset({
+          description: meal.description,
+          type: meal.type,
+          customType: meal.customType || '',
+          time: format(new Date(meal.eatenAt), 'HH:mm'),
+        });
+      } else {
+        reset({
+          description: '',
+          type: 'Breakfast',
+          customType: '',
+          time: format(new Date(), 'HH:mm'),
+        });
+      }
     }
   }, [meal, isOpen, reset]);
   const onSubmit = async (data: MealFormData) => {
@@ -111,6 +120,7 @@ export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate }: AddMealSh
       toast.error('An error occurred. Please try again.');
     }
   };
+  const allMealTypes = [...defaultMealTypes, ...presets.map(p => p.name), 'Other'];
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetContent>
@@ -132,14 +142,18 @@ export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate }: AddMealSh
               name="type"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a meal type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Other'] as MealType[]).map((type) => (
+                    {defaultMealTypes.map((type) => (
                       <SelectItem key={type} value={type}>{type}</SelectItem>
                     ))}
+                    {presets.map((preset) => (
+                      <SelectItem key={preset.id} value={preset.name}>{preset.name}</SelectItem>
+                    ))}
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               )}

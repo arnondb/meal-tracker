@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity, MealEntity } from "./entities";
+import { UserEntity, ChatBoardEntity, MealEntity, PresetEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import { Meal } from "@shared/types";
+import { Meal, Preset } from "@shared/types";
 import { startOfDay, endOfDay, parseISO, isWithinInterval } from 'date-fns';
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/test', (c) => c.json({ success: true, data: { name: 'CF Workers Demo' }}));
@@ -69,6 +69,28 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.delete('/api/meals/:id', async (c) => {
     const id = c.req.param('id');
     const deleted = await MealEntity.delete(c.env, id);
+    return ok(c, { id, deleted });
+  });
+  // PRESETS
+  app.get('/api/presets', async (c) => {
+    const { items } = await PresetEntity.list(c.env);
+    return ok(c, items);
+  });
+  app.post('/api/presets', async (c) => {
+    const body = await c.req.json<{ name?: string }>();
+    if (!body.name || !isStr(body.name)) {
+      return bad(c, 'name is required');
+    }
+    const newPreset: Preset = {
+      id: crypto.randomUUID(),
+      name: body.name,
+    };
+    const created = await PresetEntity.create(c.env, newPreset);
+    return ok(c, created);
+  });
+  app.delete('/api/presets/:id', async (c) => {
+    const id = c.req.param('id');
+    const deleted = await PresetEntity.delete(c.env, id);
     return ok(c, { id, deleted });
   });
   // USERS

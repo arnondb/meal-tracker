@@ -15,6 +15,7 @@ export function AppHeader() {
             <nav className="hidden md:flex gap-4">
               <a href="/" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Dashboard</a>
               <a href="/reports" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Reports</a>
+              <a href="/settings" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Settings</a>
             </nav>
             <ThemeToggle className="relative top-0 right-0" />
           </div>

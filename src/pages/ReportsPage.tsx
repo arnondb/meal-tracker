@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { format, subDays, parseISO } from 'date-fns';
 import { Calendar as CalendarIcon, BarChart2, Search, UtensilsCrossed } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
@@ -10,7 +10,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MealCard } from '@/components/MealCard';
 import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
 import { Meal } from '@shared/types';
@@ -23,7 +22,7 @@ export function ReportsPage() {
   });
   const [meals, setMeals] = useState<Meal[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const fetchMeals = async () => {
+  const fetchMeals = useCallback(async () => {
     if (!date?.from || !date?.to) {
       toast.warning('Please select a valid date range.');
       return;
@@ -42,10 +41,10 @@ export function ReportsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [date]);
   useEffect(() => {
     fetchMeals();
-  }, []);
+  }, [fetchMeals]);
   const mealTypeDistribution = useMemo(() => {
     const counts = meals.reduce((acc, meal) => {
       const type = meal.type === 'Other' ? meal.customType || 'Other' : meal.type;
