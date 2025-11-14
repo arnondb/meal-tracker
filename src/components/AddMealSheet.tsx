@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { api } from '@/lib/api-client';
 import { Meal, MealType, Preset } from '@shared/types';
 const mealSchema = z.object({
-  description: z.string().min(1, 'Description is required'),
+  description: z.string(),
   type: z.string().min(1, 'Meal type is required'),
   customType: z.string().optional(),
   time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:mm)'),
@@ -111,7 +111,7 @@ export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate, addMeal, up
         </SheetHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-6">
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Description (Optional)</Label>
             <Input id="description" {...register('description')} placeholder="e.g., Oatmeal with berries" />
             {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
           </div>

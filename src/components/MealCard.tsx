@@ -21,7 +21,7 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-muted/50">
           <CardTitle className="text-lg font-bold flex items-center gap-2">
             <Utensils className="h-5 w-5 text-brand" />
-            <span>{meal.description}</span>
+            <span>{meal.description || mealTitle}</span>
           </CardTitle>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(meal)}>

@@ -43,12 +43,12 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   });
   app.post('/api/meals', async (c) => {
     const body = await c.req.json<Partial<Meal>>();
-    if (!body.description || !body.type || !body.eatenAt) {
-      return bad(c, 'description, type, and eatenAt are required');
+    if (!body.type || !body.eatenAt) {
+      return bad(c, 'type and eatenAt are required');
     }
     const newMeal: Meal = {
       id: crypto.randomUUID(),
-      description: body.description,
+      description: body.description || '',
       type: body.type,
       customType: body.customType,
       eatenAt: body.eatenAt,
