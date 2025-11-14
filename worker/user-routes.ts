@@ -2,8 +2,8 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import type { Env } from './core-utils';
-import { AuthUserEntity, FamilyEntity, MealEntity, PresetEntity, Index } from "./entities";
-import { ok, bad, notFound, isStr } from './core-utils';
+import { AuthUserEntity, FamilyEntity, MealEntity, PresetEntity } from "./entities";
+import { ok, bad, notFound, isStr, Index } from './core-utils';
 import { AuthUser, Family, Meal, Preset } from "@shared/types";
 import { startOfDay, endOfDay, parseISO, isWithinInterval } from 'date-fns';
 import { authMiddleware, AuthVariables } from './auth';
@@ -138,6 +138,18 @@ app.post('/api/meals', async (c) => {
   const created = await MealEntity.create(c.env, newMeal);
   return ok(c, created);
 });
+app.put('/api/meals/:id', async (c) => {
+  const user = c.get('user');
+  if (!user.familyId) return bad(c, 'Unauthorized');
+  const id = c.req.param('id');
+  const body = await c.req.json<Partial<Meal>>();
+  const mealEntity = new MealEntity(c.env, id);
+  if (!(await mealEntity.exists()) || (await mealEntity.getState()).familyId !== user.familyId) {
+    return notFound(c, 'Meal not found');
+  }
+  await mealEntity.patch(body);
+  return ok(c, await mealEntity.getState());
+});
 app.delete('/api/meals/:id', async (c) => {
   const user = c.get('user');
   if (!user.familyId) return bad(c, 'Unauthorized');
@@ -203,7 +215,7 @@ app.post('/api/admin/reset-database', async (c) => {
 });
 // --- ERROR HANDLING ---
 app.notFound((c) => c.json({ success: false, error: 'Not Found' }, 404));
-app.onError((err, c) => { 
-  console.error(`[ERROR] ${err}`); 
-  return c.json({ success: false, error: 'Internal Server Error' }, 500); 
+app.onError((err, c) => {
+  console.error(`[ERROR] ${err}`);
+  return c.json({ success: false, error: 'Internal Server Error' }, 500);
 });
