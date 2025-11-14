@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { exportToCsv } from '@/lib/csv-exporter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 export function ReportsPage() {
   const [date, setDate] = useState<DateRange | undefined>({
@@ -208,14 +209,23 @@ export function ReportsPage() {
                         exit={{ opacity: 0, y: -20 }}
                       >
                         <Card>
-                          <CardContent className="p-4 flex justify-between items-center">
-                            <div>
-                              <p className="font-semibold">{meal.description || (meal.type === 'Other' ? meal.customType : meal.type)}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {meal.type === 'Other' ? meal.customType : meal.type}
-                              </p>
+                          <CardContent className="p-4 flex justify-between items-start">
+                            <div className="flex-1 space-y-2">
+                              <div>
+                                <p className="font-semibold">{meal.description || (meal.type === 'Other' ? meal.customType : meal.type)}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {meal.type === 'Other' ? meal.customType : meal.type}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6">
+                                  <AvatarImage src={`https://api.dicebear.com/8.x/initials/svg?seed=${meal.userName}`} />
+                                  <AvatarFallback>{meal.userName.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span className="text-xs font-medium text-muted-foreground">{meal.userName}</span>
+                              </div>
                             </div>
-                            <div className="text-right text-sm text-muted-foreground">
+                            <div className="text-right text-sm text-muted-foreground flex-shrink-0 ml-4">
                               <p>{format(parseISO(meal.eatenAt), 'MMM d, yyyy')}</p>
                               <p>{format(parseISO(meal.eatenAt), 'h:mm a')}</p>
                             </div>

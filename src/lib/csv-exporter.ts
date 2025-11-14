@@ -5,16 +5,17 @@ export function exportToCsv(meals: Meal[], filename: string) {
     console.warn('No data to export.');
     return;
   }
-  const headers = ['Date', 'Time', 'Type', 'Custom Type', 'Description'];
+  const headers = ['Date', 'Time', 'User Name', 'Type', 'Custom Type', 'Description'];
   const rows = meals.map(meal => {
     const eatenAt = parseISO(meal.eatenAt);
     const date = format(eatenAt, 'yyyy-MM-dd');
     const time = format(eatenAt, 'HH:mm');
+    const userName = meal.userName;
     const type = meal.type === 'Other' ? 'Other' : meal.type;
     const customType = meal.customType || '';
     // Escape commas in description by quoting the field and doubling internal quotes
     const description = `"${(meal.description || '').replace(/"/g, '""')}"`;
-    return [date, time, type, customType, description].join(',');
+    return [date, time, userName, type, customType, description].join(',');
   });
   const csvContent = [
     headers.join(','),
