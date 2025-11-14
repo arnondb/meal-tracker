@@ -4,7 +4,16 @@ import type { Env } from "./core-utils";
 export class AuthUserEntity extends IndexedEntity<AuthUser> {
   static readonly entityName = "authUser";
   static readonly indexName = "authUsers";
-  static readonly initialState: AuthUser = { id: "", name: "", email: "", familyId: null, token: "" };
+  static readonly initialState: AuthUser = {
+    id: "",
+    name: "",
+    email: "",
+    password: "",
+    familyId: null,
+    token: "",
+    resetToken: undefined,
+    resetTokenExpires: undefined,
+  };
   constructor(env: Env, id: string, key: 'id' | 'email' | 'token' = 'id') {
     let entityId = id;
     if (key === 'email') {
@@ -27,7 +36,6 @@ export class AuthUserEntity extends IndexedEntity<AuthUser> {
     // Also remove the primary ID from the main index
     await AuthUserEntity.removeFromIndex(env, user.id);
   }
-
 }
 export class FamilyEntity extends IndexedEntity<Family> {
   static readonly entityName = "family";

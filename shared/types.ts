@@ -8,8 +8,11 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  password?: string; // Hashed password, should not be sent to client
   familyId: string | null;
   token: string;
+  resetToken?: string;
+  resetTokenExpires?: number; // Unix timestamp
 }
 export interface Family {
   id: string;

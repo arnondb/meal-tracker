@@ -5,6 +5,17 @@ import { ok, bad, notFound, isStr, Index } from './core-utils';
 import { AuthUser, Family, Meal, Preset } from "@shared/types";
 import { startOfDay, endOfDay, parseISO, isWithinInterval } from 'date-fns';
 import { authMiddleware, AuthVariables } from './auth';
+// --- HELPERS ---
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  const passwordHash = await hashPassword(password);
+  return passwordHash === hash;
+}
 export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
   // --- PUBLIC ROUTES ---
   app.get('/api/health', (c) => c.json({ success: true, data: { status: 'healthy', timestamp: new Date().toISOString() }}));
@@ -22,11 +33,12 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     }
     const userId = crypto.randomUUID();
     const token = crypto.randomUUID();
-    // Family is no longer created on registration. User will create or join one.
+    const hashedPassword = await hashPassword(body.password);
     const newUser: AuthUser = {
       id: userId,
       name: body.name,
       email: body.email,
+      password: hashedPassword,
       familyId: null,
       token: token,
     };
@@ -46,7 +58,61 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
       return bad(c, 'Invalid credentials');
     }
     const user = await userEntity.getState();
+    if (!user.password) {
+      // Handle legacy users without a password hash
+      return bad(c, 'Account requires a password reset. Please use "Forgot Password".');
+    }
+    const isPasswordValid = await verifyPassword(body.password, user.password);
+    if (!isPasswordValid) {
+      return bad(c, 'Invalid credentials');
+    }
     return ok(c, { token: user.token });
+  });
+  app.post('/api/auth/forgot-password', async (c) => {
+    const { email } = await c.req.json<{ email?: string }>();
+    if (!isStr(email)) {
+      return bad(c, 'Email is required.');
+    }
+    const userEntity = new AuthUserEntity(c.env, email, 'email');
+    if (!(await userEntity.exists())) {
+      // Don't reveal if user exists for security, but for demo we can be explicit
+      return notFound(c, 'No account found with that email.');
+    }
+    const user = await userEntity.getState();
+    const resetToken = crypto.randomUUID();
+    const resetTokenExpires = Date.now() + 3600000; // 1 hour from now
+    const updatedUser: AuthUser = { ...user, resetToken, resetTokenExpires };
+    // Update user record in all indexed locations
+    await new AuthUserEntity(c.env, user.id, 'id').save(updatedUser);
+    await new AuthUserEntity(c.env, user.email, 'email').save(updatedUser);
+    await new AuthUserEntity(c.env, user.token, 'token').save(updatedUser);
+    // In a real app, you would email this token. For this demo, we return it.
+    return ok(c, { resetToken });
+  });
+  app.post('/api/auth/reset-password', async (c) => {
+    const { token, password } = await c.req.json<{ token?: string; password?: string }>();
+    if (!isStr(token) || !isStr(password)) {
+      return bad(c, 'Token and new password are required.');
+    }
+    if (password.length < 6) {
+      return bad(c, 'Password must be at least 6 characters.');
+    }
+    const { items: allUsers } = await AuthUserEntity.list(c.env);
+    const targetUser = allUsers.find(u => u.resetToken === token);
+    if (!targetUser || !targetUser.resetTokenExpires || targetUser.resetTokenExpires < Date.now()) {
+      return bad(c, 'Password reset token is invalid or has expired.');
+    }
+    const hashedPassword = await hashPassword(password);
+    const updatedUser: AuthUser = {
+      ...targetUser,
+      password: hashedPassword,
+      resetToken: undefined,
+      resetTokenExpires: undefined,
+    };
+    await new AuthUserEntity(c.env, targetUser.id, 'id').save(updatedUser);
+    await new AuthUserEntity(c.env, targetUser.email, 'email').save(updatedUser);
+    await new AuthUserEntity(c.env, targetUser.token, 'token').save(updatedUser);
+    return ok(c, { message: 'Password has been reset successfully.' });
   });
   // --- PROTECTED ROUTES ---
   const protectedRoutes = new Hono<{ Bindings: Env; Variables: AuthVariables }>();
@@ -60,7 +126,9 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
         family = await familyEntity.getState();
       }
     }
-    return ok(c, { user, family });
+    // Omit password from response
+    const { password, ...safeUser } = user;
+    return ok(c, { user: safeUser, family });
   });
   protectedRoutes.put('/api/auth/me', async (c) => {
     const user = c.get('user');
@@ -73,7 +141,8 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     await new AuthUserEntity(c.env, user.id, 'id').save(updatedUser);
     await new AuthUserEntity(c.env, user.email, 'email').save(updatedUser);
     await new AuthUserEntity(c.env, user.token, 'token').save(updatedUser);
-    return ok(c, updatedUser);
+    const { password, ...safeUser } = updatedUser;
+    return ok(c, safeUser);
   });
   protectedRoutes.delete('/api/auth/me', async (c) => {
     const user = c.get('user');
