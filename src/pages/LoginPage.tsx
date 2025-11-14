@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { UtensilsCrossed, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,12 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { api } from '@/lib/api-client';
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+const loginSchema = (t: (key: string) => string) => z.object({
+  email: z.string().email(t('login.emailError')),
+  password: z.string().min(1, t('login.passwordError')),
 });
-type LoginFormData = z.infer<typeof loginSchema>;
+type LoginFormData = z.infer<ReturnType<typeof loginSchema>>;
 export function LoginPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const login = useAuthStore(s => s.login);
   const {
@@ -23,7 +25,7 @@ export function LoginPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(loginSchema(t)),
   });
   const onSubmit = async (data: LoginFormData) => {
     try {
@@ -32,10 +34,10 @@ export function LoginPage() {
         body: JSON.stringify(data),
       });
       await login(response.token);
-      toast.success('Logged in successfully!');
+      toast.success(t('toasts.loginSuccess'));
       navigate('/');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Login failed. Please check your credentials.');
+      toast.error(error instanceof Error ? error.message : t('toasts.loginError'));
     }
   };
   return (
@@ -46,21 +48,21 @@ export function LoginPage() {
             <UtensilsCrossed className="h-8 w-8 text-brand" />
             <span className="font-heading text-3xl font-bold tracking-tight">ChronoPlate</span>
           </div>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>Enter your email below to login to your account</CardDescription>
+          <CardTitle className="text-2xl">{t('login.title')}</CardTitle>
+          <CardDescription>{t('login.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="m@example.com" {...register('email')} />
+              <Label htmlFor="email">{t('login.emailLabel')}</Label>
+              <Input id="email" type="email" placeholder={t('login.emailPlaceholder')} {...register('email')} />
               {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
             <div className="grid gap-2">
               <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
-                <Link to="/forgot-password" className="ml-auto inline-block text-sm underline">
-                  Forgot your password?
+                <Label htmlFor="password">{t('login.passwordLabel')}</Label>
+                <Link to="/forgot-password" className="ms-auto inline-block text-sm underline">
+                  {t('login.forgotPassword')}
                 </Link>
               </div>
               <Input id="password" type="password" {...register('password')} />
@@ -68,13 +70,13 @@ export function LoginPage() {
             </div>
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Login
+              {t('login.button')}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{' '}
+            {t('login.noAccount')}{' '}
             <Link to="/register" className="underline">
-              Sign up
+              {t('login.signUp')}
             </Link>
           </div>
         </CardContent>

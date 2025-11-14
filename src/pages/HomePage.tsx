@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
 import { format, parseISO, isToday } from 'date-fns';
 import { Plus, Calendar as CalendarIcon } from 'lucide-react';
@@ -22,7 +23,7 @@ type MealStore = {
   meals: Meal[];
   isLoading: boolean;
   error: string | null;
-  fetchMeals: (date: Date) => Promise<void>;
+  fetchMeals: (date: Date, t: (key: string) => string) => Promise<void>;
   addMeal: (meal: Meal) => void;
   updateMeal: (meal: Meal) => void;
   removeMeal: (id: string) => void;
@@ -31,7 +32,7 @@ const useMealStore = create<MealStore>((set) => ({
   meals: [],
   isLoading: true,
   error: null,
-  fetchMeals: async (date) => {
+  fetchMeals: async (date, t) => {
     set({ isLoading: true, error: null });
     try {
       const dateString = format(date, 'yyyy-MM-dd');
@@ -39,7 +40,7 @@ const useMealStore = create<MealStore>((set) => ({
       const sortedMeals = meals.sort((a, b) => new Date(a.eatenAt).getTime() - new Date(b.eatenAt).getTime());
       set({ meals: sortedMeals, isLoading: false });
     } catch (err) {
-      const error = err instanceof Error ? err.message : 'Failed to fetch meals';
+      const error = err instanceof Error ? err.message : t('toasts.fetchMealsError');
       set({ error, isLoading: false });
       toast.error(error);
     }
@@ -49,6 +50,7 @@ const useMealStore = create<MealStore>((set) => ({
   removeMeal: (id) => set((state) => ({ meals: state.meals.filter((m) => m.id !== id) })),
 }));
 export function HomePage() {
+  const { t } = useTranslation();
   const { family } = useAuthStore();
   const [isSheetOpen, setSheetOpen] = useState(false);
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
@@ -58,9 +60,9 @@ export function HomePage() {
   const { fetchMeals, meals, isLoading, addMeal, updateMeal, removeMeal } = useMealStore();
   useEffect(() => {
     if (family) {
-      fetchMeals(currentDate);
+      fetchMeals(currentDate, t);
     }
-  }, [fetchMeals, currentDate, family]);
+  }, [fetchMeals, currentDate, family, t]);
   const handleAddMeal = () => {
     setEditingMeal(null);
     setSheetOpen(true);
@@ -77,9 +79,9 @@ export function HomePage() {
     try {
       await api(`/api/meals/${deletingMealId}`, { method: 'DELETE' });
       removeMeal(deletingMealId);
-      toast.success('Meal deleted successfully!');
+      toast.success(t('toasts.deleteMealSuccess'));
     } catch (err) {
-      toast.error('Failed to delete meal.');
+      toast.error(t('toasts.deleteMealError'));
     } finally {
       setDeletingMealId(null);
     }
@@ -99,7 +101,7 @@ export function HomePage() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <CalendarIcon className="h-6 w-6 text-muted-foreground" />
-                  <h2 className="text-2xl font-bold text-foreground">Meals</h2>
+                  <h2 className="text-2xl font-bold text-foreground">{t('home.title')}</h2>
                 </div>
                 <div className="flex items-center gap-2">
                   <Popover open={isCalendarOpen} onOpenChange={setCalendarOpen}>
@@ -129,11 +131,11 @@ export function HomePage() {
                       />
                     </PopoverContent>
                   </Popover>
-                  <Button variant="outline" size="sm" onClick={goToToday} disabled={isToday(currentDate)}>Today</Button>
+                  <Button variant="outline" size="sm" onClick={goToToday} disabled={isToday(currentDate)}>{t('home.today')}</Button>
                 </div>
               </div>
               <Button onClick={handleAddMeal} className="bg-brand hover:bg-brand/90 text-brand-foreground">
-                <Plus className="mr-2 h-4 w-4" /> Log a Meal
+                <Plus className="mr-2 h-4 w-4" /> {t('home.logMeal')}
               </Button>
             </div>
             <div className="space-y-4">
@@ -156,8 +158,8 @@ export function HomePage() {
               ) : (
                 <div className="text-center py-16 px-6 border-2 border-dashed rounded-lg">
                   <EmptyStateIllustration />
-                  <h3 className="mt-4 text-lg font-semibold text-foreground">No meals logged yet</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">Click "Log a Meal" to get started.</p>
+                  <h3 className="mt-4 text-lg font-semibold text-foreground">{t('home.emptyTitle')}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{t('home.emptyDescription')}</p>
                 </div>
               )}
             </div>
@@ -175,14 +177,14 @@ export function HomePage() {
       <AlertDialog open={!!deletingMealId} onOpenChange={(open) => !open && setDeletingMealId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('home.deleteDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this meal entry.
+              {t('home.deleteDialog.description')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">{t('home.deleteDialog.action')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

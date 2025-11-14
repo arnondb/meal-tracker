@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Toaster } from '@/components/ui/sonner';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { HomePage } from '@/pages/HomePage';
@@ -12,6 +13,7 @@ import { FamilySetupPage } from './pages/FamilySetupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 export function App() {
+  const { i18n } = useTranslation();
   const checkAuth = useAuthStore((s) => s.checkAuth);
   const isInitialized = useAuthStore((s) => s.isInitialized);
   const setInitialized = useAuthStore((s) => s.setInitialized);
@@ -22,6 +24,10 @@ export function App() {
     };
     initialize();
   }, [checkAuth, setInitialized]);
+  useEffect(() => {
+    document.documentElement.lang = i18n.language;
+    document.documentElement.dir = i18n.dir(i18n.language);
+  }, [i18n, i18n.language]);
   if (!isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">

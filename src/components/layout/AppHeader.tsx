@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { UtensilsCrossed, Menu, LogOut, Copy, User as UserIcon, Users, RefreshCw, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -13,8 +14,10 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
 import { api } from '@/lib/api-client';
 import { AuthUser, Family } from '@shared/types';
+import { LanguageSwitcher } from '../LanguageSwitcher';
 type PublicUser = Pick<AuthUser, 'id' | 'name' | 'email'>;
 export function AppHeader() {
+  const { t } = useTranslation();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
   const family = useAuthStore((s) => s.family);
@@ -34,20 +37,20 @@ export function AppHeader() {
       const members = await api<PublicUser[]>('/api/family/members');
       setFamilyMembers(members);
     } catch (error) {
-      toast.error('Could not load family members.');
+      toast.error(t('toasts.familyMembersLoadError'));
     } finally {
       setIsLoadingMembers(false);
     }
-  }, [family]);
+  }, [family, t]);
   const handleLogout = () => {
     logout();
     navigate('/login');
-    toast.info('You have been logged out.');
+    toast.info(t('toasts.loggedOut'));
   };
   const handleCopyCode = () => {
     if (family?.joinCode) {
       navigator.clipboard.writeText(family.joinCode);
-      toast.success('Join code copied!');
+      toast.success(t('toasts.joinCodeCopied'));
     }
   };
   const handleRegenerateCode = async () => {
@@ -55,9 +58,9 @@ export function AppHeader() {
     try {
       const updatedFamily = await api<Family>('/api/family/regenerate-code', { method: 'POST' });
       updateFamily(updatedFamily);
-      toast.success('New join code generated!');
+      toast.success(t('toasts.newJoinCodeSuccess'));
     } catch (error) {
-      toast.error('Failed to generate new code.');
+      toast.error(t('toasts.newJoinCodeError'));
     } finally {
       setIsRegeneratingCode(false);
       setShowRegenerateConfirm(false);
@@ -65,6 +68,7 @@ export function AppHeader() {
   };
   const AuthNav = () => (
     <div className="flex items-center gap-2">
+      <LanguageSwitcher />
       <DropdownMenu open={isUserMenuOpen} onOpenChange={(open) => { setIsUserMenuOpen(open); if (open) { fetchFamilyMembers(); } }}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="rounded-full">
@@ -78,7 +82,7 @@ export function AppHeader() {
             <>
               <DropdownMenuItem className="focus:bg-transparent cursor-default">
                 <div className="flex items-center justify-between w-full">
-                  <span className="text-sm text-muted-foreground">Code: {family.joinCode}</span>
+                  <span className="text-sm text-muted-foreground">{t('header.code')} {family.joinCode}</span>
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyCode}>
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -87,16 +91,16 @@ export function AppHeader() {
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   <Users className="mr-2 h-4 w-4" />
-                  <span>Family</span>
+                  <span>{t('header.family')}</span>
                 </DropdownMenuSubTrigger>
                 <DropdownMenuPortal>
                   <DropdownMenuSubContent>
-                    <DropdownMenuLabel>Family Members</DropdownMenuLabel>
+                    <DropdownMenuLabel>{t('header.familyMembers')}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {isLoadingMembers ? (
                       <DropdownMenuItem disabled>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Loading...
+                        {t('header.loading')}
                       </DropdownMenuItem>
                     ) : (
                       familyMembers.map(member => (
@@ -112,7 +116,7 @@ export function AppHeader() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={() => setShowRegenerateConfirm(true)}>
                       <RefreshCw className="mr-2 h-4 w-4" />
-                      <span>Regenerate Code</span>
+                      <span>{t('header.regenerateCode')}</span>
                     </DropdownMenuItem>
                   </DropdownMenuSubContent>
                 </DropdownMenuPortal>
@@ -122,7 +126,7 @@ export function AppHeader() {
           )}
           <DropdownMenuItem onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
-            <span>Logout</span>
+            <span>{t('header.logout')}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -131,11 +135,12 @@ export function AppHeader() {
   );
   const GuestNav = () => (
     <div className="hidden md:flex items-center gap-2">
+      <LanguageSwitcher />
       <Button variant="ghost" asChild>
-        <Link to="/login">Login</Link>
+        <Link to="/login">{t('register.login')}</Link>
       </Button>
       <Button asChild>
-        <Link to="/register">Sign Up</Link>
+        <Link to="/register">{t('login.signUp')}</Link>
       </Button>
       <ThemeToggle className="relative top-0 right-0" />
     </div>
@@ -160,9 +165,9 @@ export function AppHeader() {
             <div className="flex items-center gap-2">
               {isAuthenticated && (
                 <nav className="hidden md:flex gap-4">
-                  <Link to="/" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
-                  <Link to="/reports" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Reports</Link>
-                  <Link to="/settings" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Settings</Link>
+                  <Link to="/" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">{t('header.dashboard')}</Link>
+                  <Link to="/reports" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">{t('header.reports')}</Link>
+                  <Link to="/settings" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">{t('header.settings')}</Link>
                 </nav>
               )}
               <div className="hidden md:block">
@@ -173,7 +178,7 @@ export function AppHeader() {
                   <SheetTrigger asChild>
                     <Button variant="ghost" size="icon">
                       <Menu className="h-6 w-6" />
-                      <span className="sr-only">Open menu</span>
+                      <span className="sr-only">{t('header.openMenu')}</span>
                     </Button>
                   </SheetTrigger>
                   <SheetContent side="right" className="w-[240px]">
@@ -181,18 +186,17 @@ export function AppHeader() {
                       {isAuthenticated ? (
                         <>
                           <nav className="flex flex-col gap-4 text-lg mt-8">
-                            <Link to="/" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
-                            <Link to="/reports" className="text-muted-foreground hover:text-foreground">Reports</Link>
-                            <Link to="/settings" className="text-muted-foreground hover:text-foreground">Settings</Link>
+                            <Link to="/" className="text-muted-foreground hover:text-foreground">{t('header.dashboard')}</Link>
+                            <Link to="/reports" className="text-muted-foreground hover:text-foreground">{t('header.reports')}</Link>
+                            <Link to="/settings" className="text-muted-foreground hover:text-foreground">{t('header.settings')}</Link>
                           </nav>
-
                           {family && (
                             <div className="mt-8">
                               <Separator />
                               <div className="py-4">
-                                <h4 className="font-semibold mb-2 px-2">Family: {family.name}</h4>
+                                <h4 className="font-semibold mb-2 px-2">{t('header.family')}: {family.name}</h4>
                                 <div className="flex items-center justify-between w-full px-2">
-                                  <span className="text-sm text-muted-foreground">Code: {family.joinCode}</span>
+                                  <span className="text-sm text-muted-foreground">{t('header.code')} {family.joinCode}</span>
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyCode}>
                                     <Copy className="h-4 w-4" />
                                   </Button>
@@ -201,14 +205,14 @@ export function AppHeader() {
                                   <CollapsibleTrigger asChild>
                                     <Button variant="ghost" className="w-full justify-start px-2">
                                       <Users className="mr-2 h-4 w-4" />
-                                      Family Members
+                                      {t('header.familyMembers')}
                                     </Button>
                                   </CollapsibleTrigger>
                                   <CollapsibleContent className="pl-6 pr-2 text-sm">
                                     {isLoadingMembers ? (
                                       <div className="flex items-center gap-2 py-1.5 text-muted-foreground">
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Loading...
+                                        {t('header.loading')}
                                       </div>
                                     ) : (
                                       familyMembers.map(member => (
@@ -225,16 +229,16 @@ export function AppHeader() {
                                 </Collapsible>
                                 <Button variant="ghost" className="w-full justify-start px-2" onClick={() => setShowRegenerateConfirm(true)}>
                                   <RefreshCw className="mr-2 h-4 w-4" />
-                                  Regenerate Code
+                                  {t('header.regenerateCode')}
                                 </Button>
                               </div>
                               <Separator />
                             </div>
                           )}
-
                           <div className="mt-auto flex flex-col items-center gap-4 pb-4">
+                            <LanguageSwitcher />
                             <Button variant="outline" onClick={handleLogout} className="w-full">
-                              <LogOut className="mr-2 h-4 w-4" /> Logout
+                              <LogOut className="mr-2 h-4 w-4" /> {t('header.logout')}
                             </Button>
                             <ThemeToggle className="relative top-0 right-0" />
                           </div>
@@ -242,10 +246,11 @@ export function AppHeader() {
                       ) : (
                         <>
                           <nav className="flex flex-col gap-4 text-lg mt-8">
-                            <Link to="/login" className="text-muted-foreground hover:text-foreground">Login</Link>
-                            <Link to="/register" className="text-muted-foreground hover:text-foreground">Sign Up</Link>
+                            <Link to="/login" className="text-muted-foreground hover:text-foreground">{t('register.login')}</Link>
+                            <Link to="/register" className="text-muted-foreground hover:text-foreground">{t('login.signUp')}</Link>
                           </nav>
-                          <div className="mt-auto flex justify-center pb-4">
+                          <div className="mt-auto flex flex-col items-center gap-4 pb-4">
+                            <LanguageSwitcher />
                             <ThemeToggle className="relative top-0 right-0" />
                           </div>
                         </>
@@ -261,16 +266,16 @@ export function AppHeader() {
       <AlertDialog open={showRegenerateConfirm} onOpenChange={setShowRegenerateConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Regenerate Join Code?</AlertDialogTitle>
+            <AlertDialogTitle>{t('header.regenerateConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will invalidate the old join code. Family members will need the new code to invite others. Are you sure you want to continue?
+              {t('header.regenerateConfirmDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleRegenerateCode} disabled={isRegeneratingCode}>
               {isRegeneratingCode && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Yes, Regenerate
+              {t('header.regenerateConfirmAction')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

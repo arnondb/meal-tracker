@@ -1,5 +1,4 @@
 {
-  "appLoading": "טוען את Meal Tracker...",
   "header": {
     "dashboard": "לוח ראשי",
     "reports": "דוחות",
@@ -11,38 +10,41 @@
     "loading": "טוען...",
     "regenerateCode": "צור קוד חדש",
     "regenerateConfirmTitle": "ליצור קוד הצטרפות חדש?",
-    "regenerateConfirmDescription": "פעולה זו ת��טל את תוקף קוד ההצטרפות הישן. חברי משפחה יצטרכו את הקוד ה��דש כדי להזמין אחרים. האם אתה בטוח שברצונך לה��שיך?",
+    "regenerateConfirmDescription": "פעולה זו תבטל את תוקף קוד ההצטרפות הישן. חברי משפחה יצטרכו את הקוד החדש כדי להזמין אחרים. האם אתה בטוח שבר��ונך להמשיך?",
     "regenerateConfirmAction": "כן, צור חדש",
-    "openMenu": "פתח תפ����יט",
-    "changeLanguage": "שנה שפה"
+    "openMenu": "פתח תפ��יט",
+    "userMenu": {
+      "copyCode": "העתק קוד הצטרפות",
+      "familyManagement": "ניהול משפחה"
+    }
   },
   "home": {
     "title": "ארוחות",
     "today": "היום",
-    "logMeal": "הוסף ארוחה",
-    "emptyTitle": "עדיין לא נרשמו א��וחות",
-    "emptyDescription": "לחץ על \"הוסף ארוחה\" כדי להתחיל.",
+    "logMeal": "הו��ף ארוחה",
+    "emptyTitle": "עדיין לא נרש��ו ארוחות",
+    "emptyDescription": "לחץ על \"הוסף ארוחה\" כדי לה��חיל.",
     "deleteDialog": {
-      "title": "��אם אתה בטוח?",
-      "description": "לא ניתן ל��טל פעולה זו. פעולה זו תמחק לצמיתות את ריש��ם הארוחה.",
+      "title": "האם אתה בטוח?",
+      "description": "לא ניתן לבטל פעולה זו. פעולה זו תמחק לצמיתות את ריש��ם הארוחה.",
       "action": "מחק"
     }
   },
   "reports": {
     "title": "דוחות ארוחות",
-    "description": "נתח את הרגלי האכילה ש��ך ל��ורך זמן.",
+    "description": "נתח את הרגלי האכילה שלך לאורך זמן.",
     "datePickerPlaceholder": "בחר תאריך",
     "search": "חפש",
-    "searching": "��חפש...",
+    "searching": "מחפש...",
     "sortBy": "מיין לפי...",
     "newestFirst": "מהחדש לישן",
     "oldestFirst": "מהישן לחדש",
-    "exportCsv": "יצ�� כ-CSV",
+    "exportCsv": "יצא כ-CSV",
     "distributionTitle": "התפלגות סוגי ארוחות",
-    "distributionDescription": "פירוט הארוחות שלך לפי סוג ע��ור התקופה שנבחרה.",
+    "distributionDescription": "פירוט הארוחות שלך לפי סוג עבור התקופה שנבחרה.",
     "mealLogTitle": "יומן ארוחות ({{count}})",
-    "emptyTitle": "לא נ��צאו ארוחות",
-    "emptyDescription": "לא נרשמו ארוחות בטווח הת��ריכים שנבחר. נסה להרחיב את החי��וש."
+    "emptyTitle": "לא נמצאו ארוחות",
+    "emptyDescription": "לא נרשמו ארוחות בטווח הת��ריכים שנבחר. נסה להרחיב את החיפוש."
   },
   "settings": {
     "title": "הגדרות",
@@ -51,11 +53,8 @@
       "title": "פרופיל משתמש",
       "description": "עדכן את המידע האישי שלך.",
       "nameLabel": "שם",
-      "emailLabel": "אי��ייל",
-      "saveButton": "שמור שינויים",
-      "validation": {
-        "nameRequired": "שם חייב להכיל לפחות 2 תווים"
-      }
+      "emailLabel": "אימייל",
+      "saveButton": "שמור שינויים"
     },
     "presets": {
       "addTitle": "הוסף הגדרה קבועה חדשה",
@@ -63,25 +62,25 @@
       "inputPlaceholder": "לדוגמה: שייק אחרי אימון",
       "addButton": "הוסף",
       "listTitle": "ההגדרות הקבועות שלך",
-      "emptyTitle": "אין ����יין הגדרות קבועות",
-      "emptyDescription": "הוסף את סוג הארוחה המותא�� אישית הראשון שלך למעלה."
+      "emptyTitle": "אין עדיין הגדרות קבועות",
+      "emptyDescription": "הוסף את סוג הארוחה המותאם אישית הראשון ��לך למעלה."
     },
     "dangerZone": {
       "title": "אזור סכנה",
-      "description": "פעולות אלו הן ��בועות ולא ניתן לבטלן.",
+      "description": "פעולות אלו הן קבועות ולא ניתן לבטלן.",
       "deleteFamilyTitle": "מחק משפחה",
       "deleteFamilyDescription": "מחק לצמיתות את המשפחה הזו ואת כל הנתונים שלה.",
-      "deleteAccountTitle": "מחק חשבון",
-      "deleteAccountDescription": "מחק לצמיתות את חשבונך ��אישי.",
+      "deleteAccountTitle": "מחק חשבו��",
+      "deleteAccountDescription": "מחק לצמיתות את חשבונך האישי.",
       "deleteButton": "מחק",
       "deleteAccountDialog": {
         "title": "למחוק את חשבונך?",
-        "description": "זוהי פעולה ��בועה. כל הנתונים האישיים שלך יוסרו, ות����ר מהקבוצה המשפחתית שלך. האם אתה בטוח?",
+        "description": "זוהי פעולה קבועה. כל הנתונים ��אישיים שלך יוסרו, ותוסר מהקבוצה המשפחתית שלך. האם אתה בטוח?",
         "action": "כן, מחק את חשבוני"
       },
       "deleteFamilyDialog": {
         "title": "למחוק את כל המשפחה שלך?",
-        "description": "זוהי פעולה קבועה שתמחק את כל הקבוצה המשפחתית, כולל כל הארוחות, ההגדרות הקבועות והחשבונות של כל ה��ברים. לא ניתן לבטל פעולה זו.",
+        "description": "זוהי פעולה קבועה שתמחק את כל הקבוצה המשפחתית, כולל כל הארוחות, ההגדרות הקבועות והחשבונות של כל החברים. לא ניתן לבטל פעולה זו.",
         "action": "כן, מחק את המשפחה הזו"
       }
     }
@@ -95,11 +94,7 @@
     "forgotPassword": "שכחת את הסיסמה?",
     "button": "התחבר",
     "noAccount": "אין לך חשבון?",
-    "signUp": "הירשם",
-    "validation": {
-      "emailInvalid": "כתובת אימייל לא חוקית",
-      "passwordRequired": "נ��רשת סיסמה"
-    }
+    "signUp": "הירשם"
   },
   "register": {
     "title": "הרשמה",
@@ -111,38 +106,12 @@
     "passwordLabel": "סיסמה",
     "button": "צור חשבון",
     "haveAccount": "יש לך כבר חשבון?",
-    "login": "התחבר",
-    "validation": {
-      "nameRequired": "שם חייב להכיל לפחות 2 תווים",
-      "emailInvalid": "כתובת אימייל לא חוקית",
-      "passwordRequired": "סיסמה חייבת להכיל לפחות 6 תווים"
-    }
-  },
-  "passwordReset": {
-    "forgotTitle": "שכחתי סיסמה",
-    "forgotDescription": "הזן את האימייל שלך ונשלח לך קוד איפוס.",
-    "forgotDescriptionSuccess": "השתמש ב��וד למטה כדי לאפס את סיסמתך.",
-    "forgotEmailLabel": "אימייל",
-    "forgotEmailPlaceholder": "m@example.com",
-    "forgotButton": "שלח קוד איפוס",
-    "forgotSuccessMessage": "לצורך הד��מה זו, הקוד מוצג כאן במקום להישלח באימייל.",
-    "forgotCopyToken": "העתק קוד",
-    "forgotResetLink": "אפס את סיסמתך",
-    "rememberPassword": "נזכר�� בסיסמה?",
-    "resetTitle": "איפוס סיסמה",
-    "resetDescription": "הזן את סיסמתך החדשה למטה.",
-    "newPasswordLabel": "סיסמה חדשה",
-    "confirmPasswordLabel": "אשר סיסמה חדשה",
-    "resetButton": "הגדר סיסמה חדשה",
-    "validation": {
-      "passwordRequired": "סיסמה חייבת להכיל לפחות 6 תווים",
-      "passwordsDontMatch": "הסיסמאות אינן תואמות"
-    }
+    "login": "התחבר"
   },
   "addMealSheet": {
     "editTitle": "ערוך ארוחה",
     "addTitle": "הוסף ארוחה חדשה",
-    "editingFor": "עריכת ארוחה ��בור",
+    "editingFor": "עריכת ארוחה עבור",
     "loggingFor": "רישום ארוחה עבור",
     "descriptionLabel": "תיאור (אופציונלי)",
     "descriptionPlaceholder": "לדוגמה: שיבולת שועל עם פירות יער",
@@ -155,51 +124,47 @@
     "saveButton": "שמור ארוחה",
     "savingButton": "שומר...",
     "validation": {
-      "typeRequired": "נדרש לבח��ר סוג ארוחה",
-      "customTypeRequired": "נדרש להזין ��וג מותאם אישית כאשר \"אחר\" נבחר"
+      "typeRequired": "נדרש לבחור סוג ארוחה",
+      "customTypeRequired": "נדרש להזין סוג מותאם אישית כאשר \"אחר\" נבחר"
     }
   },
   "familyOnboarding": {
     "title": "הגדרת משפחה",
     "description": "כדי להתחיל לרשום ארוחות, צור משפחה חדשה או הצטרף לקיימת.",
     "createTitle": "צור משפחה חדשה",
-    "createDescription": "התחל קבוצת מעקב ארוחות ��דשה למשפחתך.",
+    "createDescription": "התחל קבוצת מעקב ארוחות חדשה למשפחתך.",
     "createNameLabel": "שם משפחה",
     "createNamePlaceholder": "לדוגמה: משפחת כהן",
     "createButton": "צור משפחה",
     "joinTitle": "הצטרף למשפחה קיימת",
     "joinDescription": "הזן קוד הצטרפות מחבר משפחה.",
-    "joinCodeLabel": "קוד הצטרפות",
+    "joinCodeLabel": "��וד הצטרפות",
     "joinCodePlaceholder": "הזן קוד הצטרפות",
     "joinButton": "הצטרף למשפחה",
-    "or": "או",
-    "validation": {
-      "createNameRequired": "שם משפחה חייב להכיל לפחות 2 תווים",
-      "joinCodeRequired": "נדרש קוד הצטרפות"
-    }
+    "or": "או"
   },
   "common": {
-    "cancel": "בי��ול",
+    "cancel": "ביטול",
     "other": "אחר"
   },
   "toasts": {
-    "loggedOut": "התנתק�� בהצלחה.",
+    "loggedOut": "התנתקת בהצלח��.",
     "joinCodeCopied": "קוד ההצטרפות הועתק!",
     "familyMembersLoadError": "לא ניתן היה לטעון את חברי המשפחה.",
     "newJoinCodeSuccess": "קוד הצטרפות חדש נוצר בהצלחה!",
     "newJoinCodeError": "יצירת קוד חדש נכשלה.",
-    "fetchMealsError": "טע��נת הארוחות נכשלה",
-    "deleteMealSuccess": "ה��רוחה נמחקה בהצלחה!",
+    "fetchMealsError": "טעינת הארוחות נכשלה",
+    "deleteMealSuccess": "הארוחה נמחקה ב��צלחה!",
     "deleteMealError": "מחיקת הארוחה נכשלה.",
-    "dateRangeWarning": "��נא בחר טווח תאריכים חוקי.",
+    "dateRangeWarning": "אנא בחר טווח תאריכים חוקי.",
     "fetchReportsError": "טעינת דוחות הארוחות נכשלה.",
-    "exportNoDateWarning": "לא ניתן לייצא ללא ��ווח תאריכים חוקי.",
+    "exportNoDateWarning": "לא ניתן לייצ�� ללא טווח תאריכים חוקי.",
     "settingsLoadError": "טעינת נתוני ההגדרות נכשלה.",
-    "profileUpdateSuccess": "הפרופיל ��ודכן בהצלחה!",
+    "profileUpdateSuccess": "הפרופיל עודכן בהצלחה!",
     "profileUpdateError": "עדכון הפרופיל נכשל.",
-    "presetEmptyWarning": "שם ההגדרה הקבועה לא ��כול להיות ריק.",
-    "presetAddSuccess": "ההגדרה הקבועה \"{{name}}\" נוס��ה!",
-    "presetAddError": "הוספת ההגדרה הקבועה ��כשלה.",
+    "presetEmptyWarning": "שם ההגדרה הקבועה לא יכול להיות רי��.",
+    "presetAddSuccess": "ההגדרה הקבועה \"{{name}}\" נוספה!",
+    "presetAddError": "הוספת ההגדרה הקבועה נכשלה.",
     "presetDeleteSuccess": "ההגדרה הקבועה נמחקה בהצלחה!",
     "presetDeleteError": "מחיקת ההגדרה הקבועה נכשלה.",
     "deleteAccountSuccess": "חשבונך נמחק.",
@@ -207,7 +172,7 @@
     "deleteFamilySuccess": "המשפחה שלך נמחקה.",
     "deleteFamilyError": "מחיקת המשפחה נכשלה.",
     "loginSuccess": "התחברת בהצלחה!",
-    "loginError": "ההתחברות נכשלה. אנא בדוק את פרטי��.",
+    "loginError": "ההתחברות נכשלה. אנא בדוק את פרטיך.",
     "registerSuccess": "החשבון נוצר בהצלחה!",
     "registerError": "ההרשמה נכשלה. אנא נסה שוב.",
     "mealUpdateSuccess": "הארוחה עודכנה בהצלחה!",
@@ -217,12 +182,6 @@
     "familyCreateSuccess": "המשפחה נוצרה בהצלחה!",
     "familyCreateError": "יצירת המשפחה נכשלה.",
     "familyJoinSuccess": "הצטרפת בהצלחה למשפחה!",
-    "familyJoinError": "ההצטרפות למשפחה נכשלה. אנא בדוק את הקוד.",
-    "passwordResetTokenSuccess": "קוד איפוס סיסמה נוצר.",
-    "passwordResetTokenError": "לא ניתן היה לעבד את הבקשה.",
-    "passwordResetTokenCopied": "��קוד הועתק ללוח!",
-    "passwordResetTokenMissing": "��וד האיפוס חסר.",
-    "passwordResetSuccess": "הסיסמה אופסה בהצלחה!",
-    "passwordResetError": "איפוס הסיסמה נכשל."
+    "familyJoinError": "ההצטרפות למשפחה נכשלה. אנא בדוק את הקוד."
   }
 }

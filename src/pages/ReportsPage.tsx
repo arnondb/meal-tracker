@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { format, subDays, parseISO } from 'date-fns';
 import { Calendar as CalendarIcon, BarChart2, Search, Download } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
@@ -20,6 +21,7 @@ import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 export function ReportsPage() {
+  const { t } = useTranslation();
   const [date, setDate] = useState<DateRange | undefined>({
     from: subDays(new Date(), 29),
     to: new Date(),
@@ -29,7 +31,7 @@ export function ReportsPage() {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
   const fetchMeals = useCallback(async () => {
     if (!date?.from || !date?.to) {
-      toast.warning('Please select a valid date range.');
+      toast.warning(t('toasts.dateRangeWarning'));
       return;
     }
     setIsLoading(true);
@@ -41,12 +43,12 @@ export function ReportsPage() {
       const fetchedMeals = await api<Meal[]>(`/api/meals?${params.toString()}`);
       setMeals(fetchedMeals);
     } catch (error) {
-      toast.error('Failed to fetch meal reports.');
+      toast.error(t('toasts.fetchReportsError'));
       console.error(error);
     } finally {
       setIsLoading(false);
     }
-  }, [date]);
+  }, [date, t]);
   useEffect(() => {
     fetchMeals();
   }, [fetchMeals]);
@@ -59,15 +61,15 @@ export function ReportsPage() {
   }, [meals, sortBy]);
   const mealTypeDistribution = useMemo(() => {
     const counts = meals.reduce((acc, meal) => {
-      const type = meal.type === 'Other' ? meal.customType || 'Other' : meal.type;
+      const type = meal.type === 'Other' ? meal.customType || t('common.other') : meal.type;
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
-  }, [meals]);
+  }, [meals, t]);
   const handleExport = () => {
     if (!date?.from || !date?.to) {
-      toast.warning('Cannot export without a valid date range.');
+      toast.warning(t('toasts.exportNoDateWarning'));
       return;
     }
     const fromDate = format(date.from, 'yyyy-MM-dd');
@@ -80,8 +82,8 @@ export function ReportsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-8 md:py-10 lg:py-12">
           <header className="mb-8">
-            <h1 className="text-4xl font-heading font-bold tracking-tight text-foreground">Meal Reports</h1>
-            <p className="mt-2 text-lg text-muted-foreground">Analyze your eating habits over time.</p>
+            <h1 className="text-4xl font-heading font-bold tracking-tight text-foreground">{t('reports.title')}</h1>
+            <p className="mt-2 text-lg text-muted-foreground">{t('reports.description')}</p>
           </header>
           <Card className="mb-8 p-4 sm:p-6">
             <div className="flex flex-wrap items-center gap-4">
@@ -105,7 +107,7 @@ export function ReportsPage() {
                         format(date.from, "LLL dd, y")
                       )
                     ) : (
-                      <span>Pick a date</span>
+                      <span>{t('reports.datePickerPlaceholder')}</span>
                     )}
                   </Button>
                 </PopoverTrigger>
@@ -122,21 +124,21 @@ export function ReportsPage() {
               </Popover>
               <Button onClick={fetchMeals} disabled={isLoading} className="w-full sm:w-auto bg-brand hover:bg-brand/90 text-brand-foreground">
                 <Search className="mr-2 h-4 w-4" />
-                {isLoading ? 'Searching...' : 'Search'}
+                {isLoading ? t('reports.searching') : t('reports.search')}
               </Button>
               <div className="w-full sm:w-auto sm:ml-auto flex flex-col sm:flex-row gap-4">
                 <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'newest' | 'oldest')}>
                   <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Sort by..." />
+                    <SelectValue placeholder={t('reports.sortBy')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="oldest">Oldest First</SelectItem>
+                    <SelectItem value="newest">{t('reports.newestFirst')}</SelectItem>
+                    <SelectItem value="oldest">{t('reports.oldestFirst')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button onClick={handleExport} disabled={isLoading || meals.length === 0} variant="outline" className="w-full sm:w-auto">
                   <Download className="mr-2 h-4 w-4" />
-                  Export CSV
+                  {t('reports.exportCsv')}
                 </Button>
               </div>
             </div>
@@ -159,9 +161,9 @@ export function ReportsPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BarChart2 className="h-5 w-5 text-brand" />
-                    Meal Type Distribution
+                    {t('reports.distributionTitle')}
                   </CardTitle>
-                  <CardDescription>A breakdown of your meals by type for the selected period.</CardDescription>
+                  <CardDescription>{t('reports.distributionDescription')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -197,7 +199,7 @@ export function ReportsPage() {
                 </CardContent>
               </Card>
               <div className="md:col-span-3 space-y-4">
-                <h2 className="text-2xl font-bold">Meal Log ({sortedMeals.length})</h2>
+                <h2 className="text-2xl font-bold">{t('reports.mealLogTitle', { count: sortedMeals.length })}</h2>
                 <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4">
                   <AnimatePresence>
                     {sortedMeals.map((meal) => (
@@ -240,9 +242,9 @@ export function ReportsPage() {
           ) : (
             <div className="text-center py-16 px-6 border-2 border-dashed rounded-lg">
               <EmptyStateIllustration />
-              <h3 className="mt-4 text-lg font-semibold text-foreground">No meals found</h3>
+              <h3 className="mt-4 text-lg font-semibold text-foreground">{t('reports.emptyTitle')}</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                No meals were logged in the selected date range. Try expanding your search.
+                {t('reports.emptyDescription')}
               </p>
             </div>
           )}

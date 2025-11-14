@@ -1,5 +1,6 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Loader2, User as UserIcon, Save, AlertTriangle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -18,11 +19,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 import { FamilyOnboarding } from '@/components/FamilyOnboarding';
 import { useAuthStore } from '@/stores/useAuthStore';
-const profileSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
+const profileSchema = (t: (key: string) => string) => z.object({
+  name: z.string().min(2, t('settings.profile.nameError')),
 });
-type ProfileFormData = z.infer<typeof profileSchema>;
+type ProfileFormData = z.infer<ReturnType<typeof profileSchema>>;
 export function SettingsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const family = useAuthStore((s) => s.family);
@@ -43,7 +45,7 @@ export function SettingsPage() {
     reset,
     formState: { errors, isSubmitting: isSubmittingProfile, isDirty },
   } = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
+    resolver: zodResolver(profileSchema(t)),
   });
   useEffect(() => {
     if (user) {
@@ -57,7 +59,7 @@ export function SettingsPage() {
         const fetchedPresets = await api<Preset[]>('/api/presets');
         setPresets(fetchedPresets);
       } catch (error) {
-        toast.error('Failed to load settings data.');
+        toast.error(t('toasts.settingsLoadError'));
       } finally {
         setIsLoading(false);
       }
@@ -65,7 +67,7 @@ export function SettingsPage() {
     if (family) {
       fetchPresets();
     }
-  }, [family]);
+  }, [family, t]);
   const onProfileSubmit = async (data: ProfileFormData) => {
     try {
       const updatedUser = await api<AuthUser>('/api/auth/me', {
@@ -74,15 +76,15 @@ export function SettingsPage() {
       });
       updateUser(updatedUser);
       reset({ name: updatedUser.name });
-      toast.success('Profile updated successfully!');
+      toast.success(t('toasts.profileUpdateSuccess'));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to update profile.');
+      toast.error(error instanceof Error ? error.message : t('toasts.profileUpdateError'));
     }
   };
   const handleAddPreset = async (e: FormEvent) => {
     e.preventDefault();
     if (!newPresetName.trim()) {
-      toast.warning('Preset name cannot be empty.');
+      toast.warning(t('toasts.presetEmptyWarning'));
       return;
     }
     setIsSubmittingPreset(true);
@@ -93,9 +95,9 @@ export function SettingsPage() {
       });
       setPresets((prev) => [...prev, newPreset]);
       setNewPresetName('');
-      toast.success(`Preset "${newPreset.name}" added!`);
+      toast.success(t('toasts.presetAddSuccess', { name: newPreset.name }));
     } catch (error) {
-      toast.error('Failed to add preset.');
+      toast.error(t('toasts.presetAddError'));
     } finally {
       setIsSubmittingPreset(false);
     }
@@ -108,9 +110,9 @@ export function SettingsPage() {
     try {
       await api(`/api/presets/${deletingPresetId}`, { method: 'DELETE' });
       setPresets((prev) => prev.filter((p) => p.id !== deletingPresetId));
-      toast.success('Preset deleted successfully!');
+      toast.success(t('toasts.presetDeleteSuccess'));
     } catch (err) {
-      toast.error('Failed to delete preset.');
+      toast.error(t('toasts.presetDeleteError'));
     } finally {
       setDeletingPresetId(null);
     }
@@ -119,11 +121,11 @@ export function SettingsPage() {
     setIsDeletingAccount(true);
     try {
       await api('/api/auth/me', { method: 'DELETE' });
-      toast.success('Your account has been deleted.');
+      toast.success(t('toasts.deleteAccountSuccess'));
       logout();
       navigate('/login');
     } catch (error) {
-      toast.error('Failed to delete account.');
+      toast.error(t('toasts.deleteAccountError'));
       setIsDeletingAccount(false);
     }
   };
@@ -131,11 +133,11 @@ export function SettingsPage() {
     setIsDeletingFamily(true);
     try {
       await api('/api/family', { method: 'DELETE' });
-      toast.success('Your family has been deleted.');
+      toast.success(t('toasts.deleteFamilySuccess'));
       logout();
       navigate('/login');
     } catch (error) {
-      toast.error('Failed to delete family.');
+      toast.error(t('toasts.deleteFamilyError'));
       setIsDeletingFamily(false);
     }
   };
@@ -145,29 +147,29 @@ export function SettingsPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-8 md:py-10 lg:py-12">
             <header className="mb-8">
-              <h1 className="text-4xl font-heading font-bold tracking-tight text-foreground">Settings</h1>
-              <p className="mt-2 text-lg text-muted-foreground">Manage your profile and custom meal pre-sets.</p>
+              <h1 className="text-4xl font-heading font-bold tracking-tight text-foreground">{t('settings.title')}</h1>
+              <p className="mt-2 text-lg text-muted-foreground">{t('settings.description')}</p>
             </header>
             <div className="grid gap-12">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <UserIcon className="h-5 w-5 text-brand" />
-                    User Profile
+                    {t('settings.profile.title')}
                   </CardTitle>
-                  <CardDescription>Update your personal information.</CardDescription>
+                  <CardDescription>{t('settings.profile.description')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
-                      <Label htmlFor="name" className="sm:text-right">Name</Label>
+                      <Label htmlFor="name" className="sm:text-right">{t('settings.profile.nameLabel')}</Label>
                       <div className="sm:col-span-2">
                         <Input id="name" {...register('name')} />
                         {errors.name && <p className="text-sm text-destructive mt-2">{errors.name.message}</p>}
                       </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
-                      <Label htmlFor="email" className="sm:text-right">Email</Label>
+                      <Label htmlFor="email" className="sm:text-right">{t('settings.profile.emailLabel')}</Label>
                       <div className="sm:col-span-2">
                         <Input id="email" type="email" value={user?.email || ''} disabled readOnly />
                       </div>
@@ -175,7 +177,7 @@ export function SettingsPage() {
                     <div className="flex justify-end">
                       <Button type="submit" disabled={isSubmittingProfile || !isDirty}>
                         {isSubmittingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                        Save Changes
+                        {t('settings.profile.saveButton')}
                       </Button>
                     </div>
                   </form>
@@ -184,26 +186,26 @@ export function SettingsPage() {
               <div className="space-y-8">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Add New Pre-set</CardTitle>
-                    <CardDescription>Create a new meal type for quick logging.</CardDescription>
+                    <CardTitle>{t('settings.presets.addTitle')}</CardTitle>
+                    <CardDescription>{t('settings.presets.addDescription')}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleAddPreset} className="flex items-center gap-4">
                       <Input
-                        placeholder="e.g., Post-workout Shake"
+                        placeholder={t('settings.presets.inputPlaceholder')}
                         value={newPresetName}
                         onChange={(e) => setNewPresetName(e.target.value)}
                         disabled={isSubmittingPreset}
                       />
                       <Button type="submit" disabled={isSubmittingPreset} className="bg-brand hover:bg-brand/90 text-brand-foreground">
                         {isSubmittingPreset ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                        <span className="ml-2 hidden sm:inline">Add</span>
+                        <span className="ml-2 hidden sm:inline">{t('settings.presets.addButton')}</span>
                       </Button>
                     </form>
                   </CardContent>
                 </Card>
                 <div className="space-y-4">
-                  <h2 className="text-2xl font-bold">Your Pre-sets</h2>
+                  <h2 className="text-2xl font-bold">{t('settings.presets.listTitle')}</h2>
                   {isLoading ? (
                     Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)
                   ) : presets.length > 0 ? (
@@ -235,8 +237,8 @@ export function SettingsPage() {
                   ) : (
                     <div className="text-center py-16 px-6 border-2 border-dashed rounded-lg">
                       <EmptyStateIllustration />
-                      <h3 className="mt-4 text-lg font-semibold text-foreground">No pre-sets yet</h3>
-                      <p className="mt-1 text-sm text-muted-foreground">Add your first custom meal type above.</p>
+                      <h3 className="mt-4 text-lg font-semibold text-foreground">{t('settings.presets.emptyTitle')}</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">{t('settings.presets.emptyDescription')}</p>
                     </div>
                   )}
                 </div>
@@ -245,24 +247,24 @@ export function SettingsPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-destructive">
                     <AlertTriangle className="h-5 w-5" />
-                    Danger Zone
+                    {t('settings.dangerZone.title')}
                   </CardTitle>
-                  <CardDescription>These actions are permanent and cannot be undone.</CardDescription>
+                  <CardDescription>{t('settings.dangerZone.description')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center p-4 border border-dashed border-destructive/50 rounded-md">
                     <div>
-                      <h4 className="font-semibold">Delete Family</h4>
-                      <p className="text-sm text-muted-foreground">Permanently delete this family and all its data.</p>
+                      <h4 className="font-semibold">{t('settings.dangerZone.deleteFamilyTitle')}</h4>
+                      <p className="text-sm text-muted-foreground">{t('settings.dangerZone.deleteFamilyDescription')}</p>
                     </div>
-                    <Button variant="destructive" onClick={() => setShowDeleteFamilyConfirm(true)}>Delete</Button>
+                    <Button variant="destructive" onClick={() => setShowDeleteFamilyConfirm(true)}>{t('settings.dangerZone.deleteButton')}</Button>
                   </div>
                   <div className="flex justify-between items-center p-4 border border-dashed border-destructive/50 rounded-md">
                     <div>
-                      <h4 className="font-semibold">Delete Account</h4>
-                      <p className="text-sm text-muted-foreground">Permanently delete your personal account.</p>
+                      <h4 className="font-semibold">{t('settings.dangerZone.deleteAccountTitle')}</h4>
+                      <p className="text-sm text-muted-foreground">{t('settings.dangerZone.deleteAccountDescription')}</p>
                     </div>
-                    <Button variant="destructive" onClick={() => setShowDeleteAccountConfirm(true)}>Delete</Button>
+                    <Button variant="destructive" onClick={() => setShowDeleteAccountConfirm(true)}>{t('settings.dangerZone.deleteButton')}</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -275,30 +277,30 @@ export function SettingsPage() {
       <AlertDialog open={!!deletingPresetId} onOpenChange={(open) => !open && setDeletingPresetId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('home.deleteDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this meal pre-set.
+              {t('home.deleteDialog.description')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeletePreset} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeletePreset} className="bg-destructive hover:bg-destructive/90">{t('home.deleteDialog.action')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
       <AlertDialog open={showDeleteAccountConfirm} onOpenChange={setShowDeleteAccountConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Your Account?</AlertDialogTitle>
+            <AlertDialogTitle>{t('settings.dangerZone.deleteAccountDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This is permanent. All your personal data will be removed, and you will be removed from your family group. Are you sure?
+              {t('settings.dangerZone.deleteAccountDialog.description')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeletingAccount} className="bg-destructive hover:bg-destructive/90">
               {isDeletingAccount && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Yes, Delete My Account
+              {t('settings.dangerZone.deleteAccountDialog.action')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -306,16 +308,16 @@ export function SettingsPage() {
       <AlertDialog open={showDeleteFamilyConfirm} onOpenChange={setShowDeleteFamilyConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Your Entire Family?</AlertDialogTitle>
+            <AlertDialogTitle>{t('settings.dangerZone.deleteFamilyDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This is permanent and will delete the entire family group, including all meals, presets, and accounts for ALL members. This cannot be undone.
+              {t('settings.dangerZone.deleteFamilyDialog.description')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteFamily} disabled={isDeletingFamily} className="bg-destructive hover:bg-destructive/90">
               {isDeletingFamily && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Yes, Delete This Family
+              {t('settings.dangerZone.deleteFamilyDialog.action')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

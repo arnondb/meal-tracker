@@ -12,7 +12,7 @@ const languages = [
   { code: 'he', name: 'עברית' },
 ];
 export function LanguageSwitcher() {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
   };
@@ -21,7 +21,7 @@ export function LanguageSwitcher() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon">
           <Languages className="h-5 w-5" />
-          <span className="sr-only">{t('header.changeLanguage')}</span>
+          <span className="sr-only">Change language</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
