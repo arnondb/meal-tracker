@@ -18,7 +18,7 @@ const loginSchema = (t: (key: string) => string) => z.object({
 });
 type LoginFormData = z.infer<ReturnType<typeof loginSchema>>;
 export function LoginPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const login = useAuthStore(s => s.login);
   const {
@@ -47,7 +47,7 @@ export function LoginPage() {
         <CardHeader className="text-center">
           <div className="flex justify-center items-center gap-2 mb-4">
             <AppLogo className="h-8 w-8 text-brand" />
-            <span className="font-heading text-3xl font-bold tracking-tight">Meal Tracker</span>
+            <span className="font-heading text-3xl font-bold tracking-tight">Meal Tracker V2</span>
           </div>
           <CardTitle className="text-2xl">{t('login.title')}</CardTitle>
           <CardDescription>{t('login.description')}</CardDescription>
@@ -79,6 +79,22 @@ export function LoginPage() {
             <Link to="/register" className="underline">
               {t('login.signUp')}
             </Link>
+          </div>
+          <div className="mt-4 flex justify-center gap-2">
+            <Button
+              variant={i18n.language === 'en' ? 'secondary' : 'outline'}
+              size="sm"
+              onClick={() => i18n.changeLanguage('en')}
+            >
+              English
+            </Button>
+            <Button
+              variant={i18n.language === 'he' ? 'secondary' : 'outline'}
+              size="sm"
+              onClick={() => i18n.changeLanguage('he')}
+            >
+              עברית
+            </Button>
           </div>
         </CardContent>
       </Card>

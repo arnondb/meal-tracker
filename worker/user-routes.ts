@@ -55,7 +55,7 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     }
     const userEntity = new AuthUserEntity(c.env, body.email, 'email');
     if (!(await userEntity.exists())) {
-      return bad(c, 'Invalid credentials');
+      return bad(c, 'No account found with that email.');
     }
     const user = await userEntity.getState();
     if (!user.password) {
