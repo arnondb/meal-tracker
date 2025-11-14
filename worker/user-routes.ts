@@ -76,12 +76,16 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
   });
   protectedRoutes.post('/api/families/create', async (c) => {
     const user = c.get('user');
+    const body = await c.req.json<{ name?: string }>();
+    if (!isStr(body.name)) {
+      return bad(c, 'Family name is required.');
+    }
     if (user.familyId) {
       return bad(c, 'User is already in a family.');
     }
     const familyId = crypto.randomUUID();
     const joinCode = crypto.randomUUID().substring(0, 8).toUpperCase();
-    const newFamily: Family = { id: familyId, joinCode };
+    const newFamily: Family = { id: familyId, name: body.name, joinCode };
     await FamilyEntity.create(c.env, newFamily);
     const updatedUser: AuthUser = { ...user, familyId: newFamily.id };
     await new AuthUserEntity(c.env, user.id, 'id').save(updatedUser);

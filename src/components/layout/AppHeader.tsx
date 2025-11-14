@@ -6,8 +6,12 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Separator } from '@/components/ui/separator';
 export function AppHeader() {
-  const { isAuthenticated, user, family, logout } = useAuthStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+  const family = useAuthStore((s) => s.family);
+  const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
   const handleLogout = () => {
     logout();
@@ -65,10 +69,18 @@ export function AppHeader() {
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <UtensilsCrossed className="h-8 w-8 text-brand" />
-            <span className="font-heading text-2xl font-bold tracking-tight">ChronoPlate</span>
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-2">
+              <UtensilsCrossed className="h-8 w-8 text-brand" />
+              <span className="font-heading text-2xl font-bold tracking-tight">ChronoPlate</span>
+            </Link>
+            {family && (
+              <>
+                <Separator orientation="vertical" className="h-6" />
+                <span className="hidden sm:inline font-semibold text-muted-foreground">{family.name}</span>
+              </>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {isAuthenticated && (
               <nav className="hidden md:flex gap-4">

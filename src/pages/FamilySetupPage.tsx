@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,6 +12,10 @@ import { Separator } from '@/components/ui/separator';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { api } from '@/lib/api-client';
 import { Family } from '@shared/types';
+const createSchema = z.object({
+  name: z.string().min(2, 'Family name must be at least 2 characters'),
+});
+type CreateFormData = z.infer<typeof createSchema>;
 const joinSchema = z.object({
   joinCode: z.string().min(1, 'Join code is required'),
 });
@@ -20,25 +23,31 @@ type JoinFormData = z.infer<typeof joinSchema>;
 export function FamilySetupPage() {
   const navigate = useNavigate();
   const { checkAuth } = useAuthStore();
-  const [isCreating, setIsCreating] = useState(false);
   const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting: isJoining },
+    register: registerCreate,
+    handleSubmit: handleSubmitCreate,
+    formState: { errors: createErrors, isSubmitting: isCreating },
+  } = useForm<CreateFormData>({
+    resolver: zodResolver(createSchema),
+  });
+  const {
+    register: registerJoin,
+    handleSubmit: handleSubmitJoin,
+    formState: { errors: joinErrors, isSubmitting: isJoining },
   } = useForm<JoinFormData>({
     resolver: zodResolver(joinSchema),
   });
-  const handleCreateFamily = async () => {
-    setIsCreating(true);
+  const onCreateSubmit = async (data: CreateFormData) => {
     try {
-      await api<Family>('/api/families/create', { method: 'POST' });
+      await api<Family>('/api/families/create', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
       await checkAuth();
       toast.success('Family created successfully!');
       navigate('/');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to create family.');
-    } finally {
-      setIsCreating(false);
     }
   };
   const onJoinSubmit = async (data: JoinFormData) => {
@@ -65,10 +74,21 @@ export function FamilySetupPage() {
           <CardDescription>To start logging meals, create a new family or join an existing one.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">
-          <div className="grid gap-2 text-center">
-            <h3 className="font-semibold">Create a New Family</h3>
-            <p className="text-sm text-muted-foreground">Start a new meal tracking group for your family.</p>
-            <Button onClick={handleCreateFamily} disabled={isCreating || isJoining}>
+          <form onSubmit={handleSubmitCreate(onCreateSubmit)} className="grid gap-4">
+            <div className="grid gap-2 text-center">
+              <h3 className="font-semibold">Create a New Family</h3>
+              <p className="text-sm text-muted-foreground">Start a new meal tracking group for your family.</p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="name" className="sr-only">Family Name</Label>
+              <Input
+                id="name"
+                placeholder="e.g., The Smiths"
+                {...registerCreate('name')}
+              />
+              {createErrors.name && <p className="text-sm text-destructive text-center">{createErrors.name.message}</p>}
+            </div>
+            <Button type="submit" disabled={isCreating || isJoining}>
               {isCreating ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
@@ -76,7 +96,7 @@ export function FamilySetupPage() {
               )}
               Create Family
             </Button>
-          </div>
+          </form>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -85,7 +105,7 @@ export function FamilySetupPage() {
               <span className="bg-background px-2 text-muted-foreground">Or</span>
             </div>
           </div>
-          <form onSubmit={handleSubmit(onJoinSubmit)} className="grid gap-4">
+          <form onSubmit={handleSubmitJoin(onJoinSubmit)} className="grid gap-4">
             <div className="grid gap-2 text-center">
               <h3 className="font-semibold">Join an Existing Family</h3>
               <p className="text-sm text-muted-foreground">Enter a join code from a family member.</p>
@@ -95,10 +115,10 @@ export function FamilySetupPage() {
               <Input
                 id="joinCode"
                 placeholder="Enter join code"
-                {...register('joinCode')}
+                {...registerJoin('joinCode')}
                 className="text-center"
               />
-              {errors.joinCode && <p className="text-sm text-destructive text-center">{errors.joinCode.message}</p>}
+              {joinErrors.joinCode && <p className="text-sm text-destructive text-center">{joinErrors.joinCode.message}</p>}
             </div>
             <Button type="submit" variant="secondary" disabled={isJoining || isCreating}>
               {isJoining ? (

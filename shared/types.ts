@@ -13,6 +13,7 @@ export interface AuthUser {
 }
 export interface Family {
   id: string;
+  name: string;
   joinCode: string;
 }
 // ChronoPlate Meal type
