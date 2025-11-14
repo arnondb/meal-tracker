@@ -74,6 +74,11 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     await new AuthUserEntity(c.env, user.token, 'token').save(updatedUser);
     return ok(c, updatedUser);
   });
+  protectedRoutes.delete('/api/auth/me', async (c) => {
+    const user = c.get('user');
+    await AuthUserEntity.deleteUser(c.env, user);
+    return ok(c, { message: 'Account deleted successfully' });
+  });
   protectedRoutes.post('/api/families/create', async (c) => {
     const user = c.get('user');
     const body = await c.req.json<{ name?: string }>();
@@ -116,14 +121,8 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     if (!user.familyId) {
       return ok(c, []);
     }
-    const { keys } = await c.env.AUTH_USER_EMAIL_INDEX.list();
-    const allUsers: AuthUser[] = [];
-    for (const key of keys) {
-      const userEntity = new AuthUserEntity(c.env, key.name, 'email');
-      if (await userEntity.exists()) {
-        allUsers.push(await userEntity.getState());
-      }
-    }
+    // FIX: Use the correct method to list all users
+    const { items: allUsers } = await AuthUserEntity.list(c.env);
     const familyMembers = allUsers
       .filter(u => u.familyId === user.familyId)
       .map(({ id, name, email }) => ({ id, name, email }));
@@ -142,6 +141,29 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     await familyEntity.patch({ joinCode: newJoinCode });
     const updatedFamily = await familyEntity.getState();
     return ok(c, updatedFamily);
+  });
+  protectedRoutes.delete('/api/family', async (c) => {
+    const user = c.get('user');
+    const familyId = user.familyId;
+    if (!familyId) {
+      return bad(c, 'User is not in a family.');
+    }
+    // 1. Find all members of the family
+    const { items: allUsers } = await AuthUserEntity.list(c.env);
+    const familyMembers = allUsers.filter(u => u.familyId === familyId);
+    // 2. Find all meals and presets for the family
+    const { items: allMeals } = await MealEntity.list(c.env);
+    const familyMeals = allMeals.filter(m => m.familyId === familyId);
+    const { items: allPresets } = await PresetEntity.list(c.env);
+    const familyPresets = allPresets.filter(p => p.familyId === familyId);
+    // 3. Delete all associated data
+    await Promise.all([
+      ...familyMeals.map(m => MealEntity.delete(c.env, m.id)),
+      ...familyPresets.map(p => PresetEntity.delete(c.env, p.id)),
+      ...familyMembers.map(member => AuthUserEntity.deleteUser(c.env, member)),
+      FamilyEntity.delete(c.env, familyId)
+    ]);
+    return ok(c, { message: 'Family and all associated data deleted successfully.' });
   });
   // MEALS
   protectedRoutes.get('/api/meals', async (c) => {

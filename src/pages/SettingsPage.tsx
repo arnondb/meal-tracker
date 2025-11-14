@@ -1,6 +1,7 @@
 import { useState, useEffect, FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Loader2, User as UserIcon, Save, Users, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Loader2, User as UserIcon, Save, Users, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -23,10 +24,12 @@ const profileSchema = z.object({
 });
 type ProfileFormData = z.infer<typeof profileSchema>;
 export function SettingsPage() {
+  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const family = useAuthStore((s) => s.family);
   const updateUser = useAuthStore((s) => s.updateUser);
   const updateFamily = useAuthStore((s) => s.updateFamily);
+  const logout = useAuthStore((s) => s.logout);
   const [presets, setPresets] = useState<Preset[]>([]);
   const [familyMembers, setFamilyMembers] = useState<PublicUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,6 +38,10 @@ export function SettingsPage() {
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
   const [isRegeneratingCode, setIsRegeneratingCode] = useState(false);
   const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
+  const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [showDeleteFamilyConfirm, setShowDeleteFamilyConfirm] = useState(false);
+  const [isDeletingFamily, setIsDeletingFamily] = useState(false);
   const {
     register,
     handleSubmit,
@@ -126,6 +133,30 @@ export function SettingsPage() {
     } finally {
       setIsRegeneratingCode(false);
       setShowRegenerateConfirm(false);
+    }
+  };
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    try {
+      await api('/api/auth/me', { method: 'DELETE' });
+      toast.success('Your account has been deleted.');
+      logout();
+      navigate('/login');
+    } catch (error) {
+      toast.error('Failed to delete account.');
+      setIsDeletingAccount(false);
+    }
+  };
+  const handleDeleteFamily = async () => {
+    setIsDeletingFamily(true);
+    try {
+      await api('/api/family', { method: 'DELETE' });
+      toast.success('Your family has been deleted.');
+      logout();
+      navigate('/login');
+    } catch (error) {
+      toast.error('Failed to delete family.');
+      setIsDeletingFamily(false);
     }
   };
   return (
@@ -271,6 +302,31 @@ export function SettingsPage() {
                 )}
               </div>
             </div>
+            <Card className="border-destructive">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-destructive">
+                  <AlertTriangle className="h-5 w-5" />
+                  Danger Zone
+                </CardTitle>
+                <CardDescription>These actions are permanent and cannot be undone.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center p-4 border border-dashed border-destructive/50 rounded-md">
+                  <div>
+                    <h4 className="font-semibold">Delete Family</h4>
+                    <p className="text-sm text-muted-foreground">Permanently delete this family and all its data.</p>
+                  </div>
+                  <Button variant="destructive" onClick={() => setShowDeleteFamilyConfirm(true)}>Delete</Button>
+                </div>
+                <div className="flex justify-between items-center p-4 border border-dashed border-destructive/50 rounded-md">
+                  <div>
+                    <h4 className="font-semibold">Delete Account</h4>
+                    <p className="text-sm text-muted-foreground">Permanently delete your personal account.</p>
+                  </div>
+                  <Button variant="destructive" onClick={() => setShowDeleteAccountConfirm(true)}>Delete</Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
@@ -301,6 +357,40 @@ export function SettingsPage() {
             <AlertDialogAction onClick={handleRegenerateCode} disabled={isRegeneratingCode}>
               {isRegeneratingCode && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Yes, Regenerate
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={showDeleteAccountConfirm} onOpenChange={setShowDeleteAccountConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Your Account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This is permanent. All your personal data will be removed, and you will be removed from your family group. Are you sure?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeletingAccount} className="bg-destructive hover:bg-destructive/90">
+              {isDeletingAccount && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Yes, Delete My Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={showDeleteFamilyConfirm} onOpenChange={setShowDeleteFamilyConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Your Entire Family?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This is permanent and will delete the entire family group, including all meals, presets, and accounts for ALL members. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteFamily} disabled={isDeletingFamily} className="bg-destructive hover:bg-destructive/90">
+              {isDeletingFamily && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Yes, Delete This Family
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

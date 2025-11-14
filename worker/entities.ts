@@ -14,6 +14,19 @@ export class AuthUserEntity extends IndexedEntity<AuthUser> {
     }
     super(env, entityId);
   }
+  static async deleteUser(env: Env, user: AuthUser): Promise<void> {
+    // This static method ensures all user-related data and indexes are cleaned up.
+    const idEntity = new AuthUserEntity(env, user.id, 'id');
+    const emailEntity = new AuthUserEntity(env, user.email, 'email');
+    const tokenEntity = new AuthUserEntity(env, user.token, 'token');
+    await Promise.all([
+      idEntity.delete(),
+      emailEntity.delete(),
+      tokenEntity.delete(),
+    ]);
+    // Also remove the primary ID from the main index
+    await AuthUserEntity.removeFromIndex(env, user.id);
+  }
 }
 export class FamilyEntity extends IndexedEntity<Family> {
   static readonly entityName = "family";
