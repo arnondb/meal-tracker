@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/lib/api-client';
-import { Meal, MealType, Preset } from '@shared/types';
+import { Meal, Preset } from '@shared/types';
 const mealSchema = z.object({
   description: z.string(),
   type: z.string().min(1, 'Meal type is required'),
@@ -29,45 +29,46 @@ interface AddMealSheetProps {
   addMeal: (meal: Meal) => void;
   updateMeal: (meal: Meal) => void;
 }
-const defaultMealTypes: MealType[] = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate, addMeal, updateMeal }: AddMealSheetProps) {
   const [presets, setPresets] = useState<Preset[]>([]);
   const { register, handleSubmit, control, watch, reset, formState: { errors, isSubmitting } } = useForm<MealFormData>({
     resolver: zodResolver(mealSchema),
-    defaultValues: {
-      description: '',
-      type: 'Breakfast',
-      customType: '',
-      time: format(new Date(), 'HH:mm'),
-    },
   });
   const selectedType = watch('type');
   useEffect(() => {
     if (isOpen) {
-      const fetchPresets = async () => {
+      const fetchPresetsAndResetForm = async () => {
         try {
           const fetchedPresets = await api<Preset[]>('/api/presets');
           setPresets(fetchedPresets);
+          if (meal) {
+            reset({
+              description: meal.description,
+              type: meal.type,
+              customType: meal.customType || '',
+              time: format(new Date(meal.eatenAt), 'HH:mm'),
+            });
+          } else {
+            reset({
+              description: '',
+              type: fetchedPresets.length > 0 ? fetchedPresets[0].name : 'Other',
+              customType: '',
+              time: format(new Date(), 'HH:mm'),
+            });
+          }
         } catch (error) {
           toast.error('Could not load meal pre-sets.');
+          if (!meal) {
+            reset({
+              description: '',
+              type: 'Other',
+              customType: '',
+              time: format(new Date(), 'HH:mm'),
+            });
+          }
         }
       };
-      fetchPresets();
-      if (meal) {
-        reset({
-          description: meal.description,
-          type: meal.type,
-          customType: meal.customType || '',
-          time: format(new Date(meal.eatenAt), 'HH:mm'),
-        });
-      } else {
-        reset({
-          description: '',
-          type: 'Breakfast',
-          customType: '',
-          time: format(new Date(), 'HH:mm'),
-        });
-      }
+      fetchPresetsAndResetForm();
     }
   }, [meal, isOpen, reset]);
   const onSubmit = async (data: MealFormData) => {
@@ -126,9 +127,6 @@ export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate, addMeal, up
                     <SelectValue placeholder="Select a meal type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {defaultMealTypes.map((type) => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
-                    ))}
                     {presets.map((preset) => (
                       <SelectItem key={preset.id} value={preset.name}>{preset.name}</SelectItem>
                     ))}
