@@ -25,6 +25,8 @@ export function AppHeader() {
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
   const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
   const [isRegeneratingCode, setIsRegeneratingCode] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileFamilyOpen, setIsMobileFamilyOpen] = useState(false);
   const fetchFamilyMembers = useCallback(async () => {
     if (!family) return;
     setIsLoadingMembers(true);
@@ -63,7 +65,7 @@ export function AppHeader() {
   };
   const AuthNav = () => (
     <div className="flex items-center gap-2">
-      <DropdownMenu onOpenChange={(open) => open && fetchFamilyMembers()}>
+      <DropdownMenu open={isUserMenuOpen} onOpenChange={(open) => { setIsUserMenuOpen(open); if (open) { fetchFamilyMembers(); } }}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="rounded-full">
             <UserIcon className="h-5 w-5" />
@@ -195,7 +197,7 @@ export function AppHeader() {
                                     <Copy className="h-4 w-4" />
                                   </Button>
                                 </div>
-                                <Collapsible onOpenChange={(open) => open && fetchFamilyMembers()}>
+                                <Collapsible open={isMobileFamilyOpen} onOpenChange={(open) => { setIsMobileFamilyOpen(open); if (open) { fetchFamilyMembers(); } }}>
                                   <CollapsibleTrigger asChild>
                                     <Button variant="ghost" className="w-full justify-start px-2">
                                       <Users className="mr-2 h-4 w-4" />
