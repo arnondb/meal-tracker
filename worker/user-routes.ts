@@ -116,7 +116,14 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     if (!user.familyId) {
       return ok(c, []);
     }
-    const { items: allUsers } = await AuthUserEntity.list(c.env);
+    const { keys } = await c.env.AUTH_USER_EMAIL_INDEX.list();
+    const allUsers: AuthUser[] = [];
+    for (const key of keys) {
+      const userEntity = new AuthUserEntity(c.env, key.name, 'email');
+      if (await userEntity.exists()) {
+        allUsers.push(await userEntity.getState());
+      }
+    }
     const familyMembers = allUsers
       .filter(u => u.familyId === user.familyId)
       .map(({ id, name, email }) => ({ id, name, email }));
