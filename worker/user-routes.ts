@@ -3,21 +3,36 @@ import type { Env } from './core-utils';
 import { UserEntity, ChatBoardEntity, MealEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
 import { Meal } from "@shared/types";
-import { startOfDay, endOfDay, parseISO } from 'date-fns';
+import { startOfDay, endOfDay, parseISO, isWithinInterval } from 'date-fns';
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/test', (c) => c.json({ success: true, data: { name: 'CF Workers Demo' }}));
   // MEALS
   app.get('/api/meals', async (c) => {
     const dateQuery = c.req.query('date'); // Expects YYYY-MM-DD
+    const startDateQuery = c.req.query('startDate'); // Expects ISO String
+    const endDateQuery = c.req.query('endDate'); // Expects ISO String
     const { items } = await MealEntity.list(c.env);
+    if (startDateQuery && endDateQuery) {
+      try {
+        const startDate = parseISO(startDateQuery);
+        const endDate = parseISO(endDateQuery);
+        const filteredMeals = items.filter(meal => {
+          const mealDate = parseISO(meal.eatenAt);
+          return isWithinInterval(mealDate, { start: startDate, end: endDate });
+        });
+        return ok(c, filteredMeals);
+      } catch (e) {
+        return bad(c, 'Invalid date format for range. Please use ISO 8601 format.');
+      }
+    }
     if (dateQuery) {
       try {
         const targetDate = parseISO(dateQuery);
-        const start = startOfDay(targetDate).getTime();
-        const end = endOfDay(targetDate).getTime();
+        const start = startOfDay(targetDate);
+        const end = endOfDay(targetDate);
         const filteredMeals = items.filter(meal => {
-          const mealTime = parseISO(meal.eatenAt).getTime();
-          return mealTime >= start && mealTime <= end;
+          const mealDate = parseISO(meal.eatenAt);
+          return isWithinInterval(mealDate, { start, end });
         });
         return ok(c, filteredMeals);
       } catch (e) {
