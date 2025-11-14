@@ -4,6 +4,7 @@ import { UtensilsCrossed, Menu, LogOut, Copy, User as UserIcon, Users, RefreshCw
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -73,7 +74,7 @@ export function AppHeader() {
           <DropdownMenuSeparator />
           {family && (
             <>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <DropdownMenuItem className="focus:bg-transparent cursor-default">
                 <div className="flex items-center justify-between w-full">
                   <span className="text-sm text-muted-foreground">Code: {family.joinCode}</span>
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyCode}>
@@ -182,6 +183,53 @@ export function AppHeader() {
                             <Link to="/reports" className="text-muted-foreground hover:text-foreground">Reports</Link>
                             <Link to="/settings" className="text-muted-foreground hover:text-foreground">Settings</Link>
                           </nav>
+
+                          {family && (
+                            <div className="mt-8">
+                              <Separator />
+                              <div className="py-4">
+                                <h4 className="font-semibold mb-2 px-2">Family: {family.name}</h4>
+                                <div className="flex items-center justify-between w-full px-2">
+                                  <span className="text-sm text-muted-foreground">Code: {family.joinCode}</span>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyCode}>
+                                    <Copy className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <Collapsible onOpenChange={(open) => open && fetchFamilyMembers()}>
+                                  <CollapsibleTrigger asChild>
+                                    <Button variant="ghost" className="w-full justify-start px-2">
+                                      <Users className="mr-2 h-4 w-4" />
+                                      Family Members
+                                    </Button>
+                                  </CollapsibleTrigger>
+                                  <CollapsibleContent className="pl-6 pr-2 text-sm">
+                                    {isLoadingMembers ? (
+                                      <div className="flex items-center gap-2 py-1.5 text-muted-foreground">
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Loading...
+                                      </div>
+                                    ) : (
+                                      familyMembers.map(member => (
+                                        <div key={member.id} className="flex items-center gap-2 py-1.5">
+                                          <Avatar className="h-6 w-6">
+                                            <AvatarImage src={`https://api.dicebear.com/8.x/initials/svg?seed=${member.name}`} />
+                                            <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                                          </Avatar>
+                                          <span>{member.name}</span>
+                                        </div>
+                                      ))
+                                    )}
+                                  </CollapsibleContent>
+                                </Collapsible>
+                                <Button variant="ghost" className="w-full justify-start px-2" onClick={() => setShowRegenerateConfirm(true)}>
+                                  <RefreshCw className="mr-2 h-4 w-4" />
+                                  Regenerate Code
+                                </Button>
+                              </div>
+                              <Separator />
+                            </div>
+                          )}
+
                           <div className="mt-auto flex flex-col items-center gap-4 pb-4">
                             <Button variant="outline" onClick={handleLogout} className="w-full">
                               <LogOut className="mr-2 h-4 w-4" /> Logout
