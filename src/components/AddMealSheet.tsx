@@ -4,14 +4,17 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, set } from 'date-fns';
 import { toast } from 'sonner';
+import { Clock } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { api } from '@/lib/api-client';
 import { Meal, Preset } from '@shared/types';
 import { TimePicker } from './TimePicker';
+import { cn } from '@/lib/utils';
 const mealSchema = z.object({
   description: z.string(),
   type: z.string().min(1, 'Meal type is required'),
@@ -160,7 +163,23 @@ export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate, addMeal, up
                 name="time"
                 control={control}
                 render={({ field }) => (
-                  <TimePicker value={field.value} onChange={field.onChange} />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        <Clock className="mr-2 h-4 w-4" />
+                        {field.value ? field.value : <span>Pick a time</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <TimePicker value={field.value} onChange={field.onChange} />
+                    </PopoverContent>
+                  </Popover>
                 )}
               />
               {errors.time && <p className="text-sm text-destructive">{errors.time.message}</p>}
