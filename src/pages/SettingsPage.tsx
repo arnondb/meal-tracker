@@ -1,22 +1,47 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Loader2, User as UserIcon, Save } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
-import { Preset } from '@shared/types';
+import { Preset, AuthUser } from '@shared/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { Separator } from '@/components/ui/separator';
+const profileSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+});
+type ProfileFormData = z.infer<typeof profileSchema>;
 export function SettingsPage() {
+  const user = useAuthStore((s) => s.user);
+  const updateUser = useAuthStore((s) => s.updateUser);
   const [presets, setPresets] = useState<Preset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newPresetName, setNewPresetName] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingPreset, setIsSubmittingPreset] = useState(false);
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting: isSubmittingProfile, isDirty },
+  } = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+  });
+  useEffect(() => {
+    if (user) {
+      reset({ name: user.name });
+    }
+  }, [user, reset]);
   useEffect(() => {
     const fetchPresets = async () => {
       setIsLoading(true);
@@ -31,13 +56,26 @@ export function SettingsPage() {
     };
     fetchPresets();
   }, []);
+  const onProfileSubmit = async (data: ProfileFormData) => {
+    try {
+      const updatedUser = await api<AuthUser>('/api/auth/me', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      updateUser(updatedUser);
+      reset({ name: updatedUser.name });
+      toast.success('Profile updated successfully!');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to update profile.');
+    }
+  };
   const handleAddPreset = async (e: FormEvent) => {
     e.preventDefault();
     if (!newPresetName.trim()) {
       toast.warning('Preset name cannot be empty.');
       return;
     }
-    setIsSubmitting(true);
+    setIsSubmittingPreset(true);
     try {
       const newPreset = await api<Preset>('/api/presets', {
         method: 'POST',
@@ -49,7 +87,7 @@ export function SettingsPage() {
     } catch (error) {
       toast.error('Failed to add preset.');
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingPreset(false);
     }
   };
   const handleDeletePreset = (id: string) => {
@@ -73,65 +111,101 @@ export function SettingsPage() {
         <div className="py-8 md:py-10 lg:py-12">
           <header className="mb-8">
             <h1 className="text-4xl font-heading font-bold tracking-tight text-foreground">Settings</h1>
-            <p className="mt-2 text-lg text-muted-foreground">Manage your custom meal pre-sets.</p>
+            <p className="mt-2 text-lg text-muted-foreground">Manage your profile and custom meal pre-sets.</p>
           </header>
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Add New Pre-set</CardTitle>
-              <CardDescription>Create a new meal type for quick logging.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAddPreset} className="flex items-center gap-4">
-                <Input
-                  placeholder="e.g., Post-workout Shake"
-                  value={newPresetName}
-                  onChange={(e) => setNewPresetName(e.target.value)}
-                  disabled={isSubmitting}
-                />
-                <Button type="submit" disabled={isSubmitting} className="bg-brand hover:bg-brand/90 text-brand-foreground">
-                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                  <span className="ml-2 hidden sm:inline">Add</span>
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Your Pre-sets</h2>
-            {isLoading ? (
-              Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)
-            ) : presets.length > 0 ? (
-              <AnimatePresence>
-                {presets.map((preset) => (
-                  <motion.div
-                    key={preset.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
-                  >
-                    <Card>
-                      <CardContent className="p-4 flex justify-between items-center">
-                        <span className="font-medium">{preset.name}</span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => handleDeletePreset(preset.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            ) : (
-              <div className="text-center py-16 px-6 border-2 border-dashed rounded-lg">
-                <EmptyStateIllustration />
-                <h3 className="mt-4 text-lg font-semibold text-foreground">No pre-sets yet</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Add your first custom meal type above.</p>
+          <div className="grid gap-12">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserIcon className="h-5 w-5 text-brand" />
+                  User Profile
+                </CardTitle>
+                <CardDescription>Update your personal information.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+                    <Label htmlFor="name" className="sm:text-right">Name</Label>
+                    <div className="sm:col-span-2">
+                      <Input id="name" {...register('name')} />
+                      {errors.name && <p className="text-sm text-destructive mt-2">{errors.name.message}</p>}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+                    <Label htmlFor="email" className="sm:text-right">Email</Label>
+                    <div className="sm:col-span-2">
+                      <Input id="email" type="email" value={user?.email || ''} disabled readOnly />
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <Button type="submit" disabled={isSubmittingProfile || !isDirty}>
+                      {isSubmittingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                      Save Changes
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+            <div className="space-y-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Add New Pre-set</CardTitle>
+                  <CardDescription>Create a new meal type for quick logging.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleAddPreset} className="flex items-center gap-4">
+                    <Input
+                      placeholder="e.g., Post-workout Shake"
+                      value={newPresetName}
+                      onChange={(e) => setNewPresetName(e.target.value)}
+                      disabled={isSubmittingPreset}
+                    />
+                    <Button type="submit" disabled={isSubmittingPreset} className="bg-brand hover:bg-brand/90 text-brand-foreground">
+                      {isSubmittingPreset ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                      <span className="ml-2 hidden sm:inline">Add</span>
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold">Your Pre-sets</h2>
+                {isLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)
+                ) : presets.length > 0 ? (
+                  <AnimatePresence>
+                    {presets.map((preset) => (
+                      <motion.div
+                        key={preset.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
+                      >
+                        <Card>
+                          <CardContent className="p-4 flex justify-between items-center">
+                            <span className="font-medium">{preset.name}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => handleDeletePreset(preset.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                ) : (
+                  <div className="text-center py-16 px-6 border-2 border-dashed rounded-lg">
+                    <EmptyStateIllustration />
+                    <h3 className="mt-4 text-lg font-semibold text-foreground">No pre-sets yet</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">Add your first custom meal type above.</p>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>

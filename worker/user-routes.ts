@@ -61,6 +61,19 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     }
     return ok(c, { user, family });
   });
+  protectedRoutes.put('/api/auth/me', async (c) => {
+    const user = c.get('user');
+    const body = await c.req.json<{ name?: string }>();
+    if (!isStr(body.name)) {
+      return bad(c, 'Name is required and must be a string.');
+    }
+    const updatedUser: AuthUser = { ...user, name: body.name };
+    // Update user record in all indexed locations for consistency
+    await new AuthUserEntity(c.env, user.id, 'id').save(updatedUser);
+    await new AuthUserEntity(c.env, user.email, 'email').save(updatedUser);
+    await new AuthUserEntity(c.env, user.token, 'token').save(updatedUser);
+    return ok(c, updatedUser);
+  });
   protectedRoutes.post('/api/families/create', async (c) => {
     const user = c.get('user');
     if (user.familyId) {
