@@ -78,7 +78,8 @@ function updateWranglerJsonc() {
 
 function runSetupCommands() {
     const commands = [
-    "bun add i18next react-i18next i18next-browser-languagedetector"
+    "bun add i18next react-i18next i18next-browser-languagedetector",
+    "bun install i18next react-i18next i18next-browser-languagedetector"
 ];
     
     if (commands.length === 0) {
