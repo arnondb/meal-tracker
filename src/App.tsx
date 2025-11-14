@@ -8,7 +8,7 @@ import { SettingsPage } from '@/pages/SettingsPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { FamilyGatePage } from './pages/FamilyGatePage';
+import { FamilySetupPage } from './pages/FamilySetupPage';
 export function App() {
   const checkAuth = useAuthStore((s) => s.checkAuth);
   const isInitialized = useAuthStore((s) => s.isInitialized);
@@ -22,8 +22,8 @@ export function App() {
   }, [checkAuth, setInitialized]);
   if (!isInitialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground animate-pulse">Loading ChronoPlate...</p>
       </div>
     );
   }
@@ -35,7 +35,7 @@ export function App() {
         <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
         <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-        <Route path="/family-gate" element={<FamilyGatePage />} />
+        <Route path="/family-setup" element={<ProtectedRoute><FamilySetupPage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       <Toaster richColors />

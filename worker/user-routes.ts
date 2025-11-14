@@ -22,15 +22,12 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     }
     const userId = crypto.randomUUID();
     const token = crypto.randomUUID();
-    const familyId = crypto.randomUUID();
-    const joinCode = crypto.randomUUID().substring(0, 8).toUpperCase();
-    const family: Family = { id: familyId, joinCode };
-    await FamilyEntity.create(c.env, family);
+    // Family is no longer created on registration. User will create or join one.
     const newUser: AuthUser = {
       id: userId,
       name: body.name,
       email: body.email,
-      familyId: familyId,
+      familyId: null,
       token: token,
     };
     await new AuthUserEntity(c.env, userId, 'id').save(newUser);
@@ -64,6 +61,21 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     }
     return ok(c, { user, family });
   });
+  protectedRoutes.post('/api/families/create', async (c) => {
+    const user = c.get('user');
+    if (user.familyId) {
+      return bad(c, 'User is already in a family.');
+    }
+    const familyId = crypto.randomUUID();
+    const joinCode = crypto.randomUUID().substring(0, 8).toUpperCase();
+    const newFamily: Family = { id: familyId, joinCode };
+    await FamilyEntity.create(c.env, newFamily);
+    const updatedUser: AuthUser = { ...user, familyId: newFamily.id };
+    await new AuthUserEntity(c.env, user.id, 'id').save(updatedUser);
+    await new AuthUserEntity(c.env, user.email, 'email').save(updatedUser);
+    await new AuthUserEntity(c.env, user.token, 'token').save(updatedUser);
+    return ok(c, newFamily);
+  });
   protectedRoutes.post('/api/families/join', async (c) => {
     const user = c.get('user');
     const { joinCode } = await c.req.json<{ joinCode?: string }>();
@@ -71,7 +83,7 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
       return bad(c, 'Join code is required');
     }
     const { items: allFamilies } = await FamilyEntity.list(c.env);
-    const targetFamily = allFamilies.find(f => f.joinCode === joinCode);
+    const targetFamily = allFamilies.find(f => f.joinCode.toUpperCase() === joinCode.toUpperCase());
     if (!targetFamily) {
       return bad(c, 'Invalid join code');
     }
