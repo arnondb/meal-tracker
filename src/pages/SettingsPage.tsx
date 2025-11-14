@@ -16,6 +16,7 @@ import { api } from '@/lib/api-client';
 import { Preset, AuthUser, Family } from '@shared/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
+import { FamilyOnboarding } from '@/components/FamilyOnboarding';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 type PublicUser = Pick<AuthUser, 'id' | 'name' | 'email'>;
@@ -161,175 +162,179 @@ export function SettingsPage() {
   };
   return (
     <AppLayout>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="py-8 md:py-10 lg:py-12">
-          <header className="mb-8">
-            <h1 className="text-4xl font-heading font-bold tracking-tight text-foreground">Settings</h1>
-            <p className="mt-2 text-lg text-muted-foreground">Manage your profile, family, and custom meal pre-sets.</p>
-          </header>
-          <div className="grid gap-12">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <UserIcon className="h-5 w-5 text-brand" />
-                  User Profile
-                </CardTitle>
-                <CardDescription>Update your personal information.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
-                    <Label htmlFor="name" className="sm:text-right">Name</Label>
-                    <div className="sm:col-span-2">
-                      <Input id="name" {...register('name')} />
-                      {errors.name && <p className="text-sm text-destructive mt-2">{errors.name.message}</p>}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
-                    <Label htmlFor="email" className="sm:text-right">Email</Label>
-                    <div className="sm:col-span-2">
-                      <Input id="email" type="email" value={user?.email || ''} disabled readOnly />
-                    </div>
-                  </div>
-                  <div className="flex justify-end">
-                    <Button type="submit" disabled={isSubmittingProfile || !isDirty}>
-                      {isSubmittingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                      Save Changes
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-brand" />
-                  Family Management
-                </CardTitle>
-                <CardDescription>View members and manage your family group.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h3 className="font-semibold mb-2">Family Members ({familyMembers.length})</h3>
-                  <div className="space-y-3">
-                    {isLoading ? (
-                      Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-md" />)
-                    ) : (
-                      familyMembers.map(member => (
-                        <div key={member.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
-                          <Avatar>
-                            <AvatarImage src={`https://api.dicebear.com/8.x/initials/svg?seed=${member.name}`} />
-                            <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{member.name}</p>
-                            <p className="text-sm text-muted-foreground">{member.email}</p>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Join Code</h3>
-                  <div className="flex items-center justify-between p-3 rounded-md border bg-muted/30">
-                    <span className="font-mono text-lg tracking-widest">{family?.joinCode}</span>
-                    <Button variant="secondary" onClick={() => setShowRegenerateConfirm(true)}>
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      Regenerate
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <div className="space-y-8">
+      {family ? (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-8 md:py-10 lg:py-12">
+            <header className="mb-8">
+              <h1 className="text-4xl font-heading font-bold tracking-tight text-foreground">Settings</h1>
+              <p className="mt-2 text-lg text-muted-foreground">Manage your profile, family, and custom meal pre-sets.</p>
+            </header>
+            <div className="grid gap-12">
               <Card>
                 <CardHeader>
-                  <CardTitle>Add New Pre-set</CardTitle>
-                  <CardDescription>Create a new meal type for quick logging.</CardDescription>
+                  <CardTitle className="flex items-center gap-2">
+                    <UserIcon className="h-5 w-5 text-brand" />
+                    User Profile
+                  </CardTitle>
+                  <CardDescription>Update your personal information.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={handleAddPreset} className="flex items-center gap-4">
-                    <Input
-                      placeholder="e.g., Post-workout Shake"
-                      value={newPresetName}
-                      onChange={(e) => setNewPresetName(e.target.value)}
-                      disabled={isSubmittingPreset}
-                    />
-                    <Button type="submit" disabled={isSubmittingPreset} className="bg-brand hover:bg-brand/90 text-brand-foreground">
-                      {isSubmittingPreset ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                      <span className="ml-2 hidden sm:inline">Add</span>
-                    </Button>
+                  <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+                      <Label htmlFor="name" className="sm:text-right">Name</Label>
+                      <div className="sm:col-span-2">
+                        <Input id="name" {...register('name')} />
+                        {errors.name && <p className="text-sm text-destructive mt-2">{errors.name.message}</p>}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+                      <Label htmlFor="email" className="sm:text-right">Email</Label>
+                      <div className="sm:col-span-2">
+                        <Input id="email" type="email" value={user?.email || ''} disabled readOnly />
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button type="submit" disabled={isSubmittingProfile || !isDirty}>
+                        {isSubmittingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                        Save Changes
+                      </Button>
+                    </div>
                   </form>
                 </CardContent>
               </Card>
-              <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Your Pre-sets</h2>
-                {isLoading ? (
-                  Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)
-                ) : presets.length > 0 ? (
-                  <AnimatePresence>
-                    {presets.map((preset) => (
-                      <motion.div
-                        key={preset.id}
-                        layout
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
-                      >
-                        <Card>
-                          <CardContent className="p-4 flex justify-between items-center">
-                            <span className="font-medium">{preset.name}</span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => handleDeletePreset(preset.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                ) : (
-                  <div className="text-center py-16 px-6 border-2 border-dashed rounded-lg">
-                    <EmptyStateIllustration />
-                    <h3 className="mt-4 text-lg font-semibold text-foreground">No pre-sets yet</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">Add your first custom meal type above.</p>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-brand" />
+                    Family Management
+                  </CardTitle>
+                  <CardDescription>View members and manage your family group.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h3 className="font-semibold mb-2">Family Members ({familyMembers.length})</h3>
+                    <div className="space-y-3">
+                      {isLoading ? (
+                        Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-md" />)
+                      ) : (
+                        familyMembers.map(member => (
+                          <div key={member.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
+                            <Avatar>
+                              <AvatarImage src={`https://api.dicebear.com/8.x/initials/svg?seed=${member.name}`} />
+                              <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">{member.name}</p>
+                              <p className="text-sm text-muted-foreground">{member.email}</p>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
-                )}
+                  <div>
+                    <h3 className="font-semibold mb-2">Join Code</h3>
+                    <div className="flex items-center justify-between p-3 rounded-md border bg-muted/30">
+                      <span className="font-mono text-lg tracking-widest">{family?.joinCode}</span>
+                      <Button variant="secondary" onClick={() => setShowRegenerateConfirm(true)}>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Regenerate
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <div className="space-y-8">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Add New Pre-set</CardTitle>
+                    <CardDescription>Create a new meal type for quick logging.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleAddPreset} className="flex items-center gap-4">
+                      <Input
+                        placeholder="e.g., Post-workout Shake"
+                        value={newPresetName}
+                        onChange={(e) => setNewPresetName(e.target.value)}
+                        disabled={isSubmittingPreset}
+                      />
+                      <Button type="submit" disabled={isSubmittingPreset} className="bg-brand hover:bg-brand/90 text-brand-foreground">
+                        {isSubmittingPreset ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                        <span className="ml-2 hidden sm:inline">Add</span>
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+                <div className="space-y-4">
+                  <h2 className="text-2xl font-bold">Your Pre-sets</h2>
+                  {isLoading ? (
+                    Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)
+                  ) : presets.length > 0 ? (
+                    <AnimatePresence>
+                      {presets.map((preset) => (
+                        <motion.div
+                          key={preset.id}
+                          layout
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
+                        >
+                          <Card>
+                            <CardContent className="p-4 flex justify-between items-center">
+                              <span className="font-medium">{preset.name}</span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => handleDeletePreset(preset.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  ) : (
+                    <div className="text-center py-16 px-6 border-2 border-dashed rounded-lg">
+                      <EmptyStateIllustration />
+                      <h3 className="mt-4 text-lg font-semibold text-foreground">No pre-sets yet</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">Add your first custom meal type above.</p>
+                    </div>
+                  )}
+                </div>
               </div>
+              <Card className="border-destructive">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-destructive">
+                    <AlertTriangle className="h-5 w-5" />
+                    Danger Zone
+                  </CardTitle>
+                  <CardDescription>These actions are permanent and cannot be undone.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center p-4 border border-dashed border-destructive/50 rounded-md">
+                    <div>
+                      <h4 className="font-semibold">Delete Family</h4>
+                      <p className="text-sm text-muted-foreground">Permanently delete this family and all its data.</p>
+                    </div>
+                    <Button variant="destructive" onClick={() => setShowDeleteFamilyConfirm(true)}>Delete</Button>
+                  </div>
+                  <div className="flex justify-between items-center p-4 border border-dashed border-destructive/50 rounded-md">
+                    <div>
+                      <h4 className="font-semibold">Delete Account</h4>
+                      <p className="text-sm text-muted-foreground">Permanently delete your personal account.</p>
+                    </div>
+                    <Button variant="destructive" onClick={() => setShowDeleteAccountConfirm(true)}>Delete</Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-            <Card className="border-destructive">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-destructive">
-                  <AlertTriangle className="h-5 w-5" />
-                  Danger Zone
-                </CardTitle>
-                <CardDescription>These actions are permanent and cannot be undone.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center p-4 border border-dashed border-destructive/50 rounded-md">
-                  <div>
-                    <h4 className="font-semibold">Delete Family</h4>
-                    <p className="text-sm text-muted-foreground">Permanently delete this family and all its data.</p>
-                  </div>
-                  <Button variant="destructive" onClick={() => setShowDeleteFamilyConfirm(true)}>Delete</Button>
-                </div>
-                <div className="flex justify-between items-center p-4 border border-dashed border-destructive/50 rounded-md">
-                  <div>
-                    <h4 className="font-semibold">Delete Account</h4>
-                    <p className="text-sm text-muted-foreground">Permanently delete your personal account.</p>
-                  </div>
-                  <Button variant="destructive" onClick={() => setShowDeleteAccountConfirm(true)}>Delete</Button>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
-      </div>
+      ) : (
+        <FamilyOnboarding />
+      )}
       <AlertDialog open={!!deletingPresetId} onOpenChange={(open) => !open && setDeletingPresetId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

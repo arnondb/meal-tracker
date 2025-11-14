@@ -16,6 +16,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { FamilyOnboarding } from '@/components/FamilyOnboarding';
 type MealStore = {
   meals: Meal[];
   isLoading: boolean;
@@ -47,6 +49,7 @@ const useMealStore = create<MealStore>((set) => ({
   removeMeal: (id) => set((state) => ({ meals: state.meals.filter((m) => m.id !== id) })),
 }));
 export function HomePage() {
+  const { family } = useAuthStore();
   const [isSheetOpen, setSheetOpen] = useState(false);
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
   const [deletingMealId, setDeletingMealId] = useState<string | null>(null);
@@ -54,8 +57,10 @@ export function HomePage() {
   const [isCalendarOpen, setCalendarOpen] = useState(false);
   const { fetchMeals, meals, isLoading, addMeal, updateMeal, removeMeal } = useMealStore();
   useEffect(() => {
-    fetchMeals(currentDate);
-  }, [fetchMeals, currentDate]);
+    if (family) {
+      fetchMeals(currentDate);
+    }
+  }, [fetchMeals, currentDate, family]);
   const handleAddMeal = () => {
     setEditingMeal(null);
     setSheetOpen(true);
@@ -85,76 +90,80 @@ export function HomePage() {
   const sortedMeals = useMemo(() => meals.slice().sort((a, b) => parseISO(a.eatenAt).getTime() - parseISO(b.eatenAt).getTime()), [meals]);
   return (
     <AppLayout>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="py-8 md:py-10 lg:py-12">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <CalendarIcon className="h-6 w-6 text-muted-foreground" />
-                <h2 className="text-2xl font-bold text-foreground">Meals</h2>
+      {family === null ? (
+        <FamilyOnboarding />
+      ) : (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-8 md:py-10 lg:py-12">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <CalendarIcon className="h-6 w-6 text-muted-foreground" />
+                  <h2 className="text-2xl font-bold text-foreground">Meals</h2>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Popover open={isCalendarOpen} onOpenChange={setCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-[240px] justify-start text-left font-normal",
+                          !currentDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {format(currentDate, "MMMM d, yyyy")}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={currentDate}
+                        onSelect={(date) => {
+                          if (date) {
+                            setCurrentDate(date);
+                          }
+                          setCalendarOpen(false);
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <Button variant="outline" size="sm" onClick={goToToday} disabled={isToday(currentDate)}>Today</Button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Popover open={isCalendarOpen} onOpenChange={setCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-[240px] justify-start text-left font-normal",
-                        !currentDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {format(currentDate, "MMMM d, yyyy")}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={currentDate}
-                      onSelect={(date) => {
-                        if (date) {
-                          setCurrentDate(date);
-                        }
-                        setCalendarOpen(false);
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <Button variant="outline" size="sm" onClick={goToToday} disabled={isToday(currentDate)}>Today</Button>
-              </div>
+              <Button onClick={handleAddMeal} className="bg-brand hover:bg-brand/90 text-brand-foreground">
+                <Plus className="mr-2 h-4 w-4" /> Log a Meal
+              </Button>
             </div>
-            <Button onClick={handleAddMeal} className="bg-brand hover:bg-brand/90 text-brand-foreground">
-              <Plus className="mr-2 h-4 w-4" /> Log a Meal
-            </Button>
-          </div>
-          <div className="space-y-4">
-            {isLoading ? (
-              Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-lg" />)
-            ) : sortedMeals.length > 0 ? (
-              <AnimatePresence>
-                {sortedMeals.map((meal) => (
-                  <motion.div
-                    key={meal.id}
-                    layout
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                  >
-                    <MealCard meal={meal} onEdit={handleEditMeal} onDelete={handleDeleteMeal} />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            ) : (
-              <div className="text-center py-16 px-6 border-2 border-dashed rounded-lg">
-                <EmptyStateIllustration />
-                <h3 className="mt-4 text-lg font-semibold text-foreground">No meals logged yet</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Click "Log a Meal" to get started.</p>
-              </div>
-            )}
+            <div className="space-y-4">
+              {isLoading ? (
+                Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-lg" />)
+              ) : sortedMeals.length > 0 ? (
+                <AnimatePresence>
+                  {sortedMeals.map((meal) => (
+                    <motion.div
+                      key={meal.id}
+                      layout
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                    >
+                      <MealCard meal={meal} onEdit={handleEditMeal} onDelete={handleDeleteMeal} />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              ) : (
+                <div className="text-center py-16 px-6 border-2 border-dashed rounded-lg">
+                  <EmptyStateIllustration />
+                  <h3 className="mt-4 text-lg font-semibold text-foreground">No meals logged yet</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">Click "Log a Meal" to get started.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
       <AddMealSheet
         isOpen={isSheetOpen}
         setIsOpen={setSheetOpen}
