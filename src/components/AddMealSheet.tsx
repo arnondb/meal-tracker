@@ -116,7 +116,8 @@ export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate, addMeal, up
         <SheetHeader>
           <SheetTitle>{meal ? 'Edit Meal' : 'Log a New Meal'}</SheetTitle>
           <SheetDescription>
-            Fill in the details of your meal. Click save when you're done.
+            {meal ? 'Editing meal for ' : 'Logging a meal for '}
+            <span className="font-semibold text-foreground">{format(currentDate, 'MMMM d, yyyy')}</span>.
           </SheetDescription>
         </SheetHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col justify-between space-y-6 py-6">
