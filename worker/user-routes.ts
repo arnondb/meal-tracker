@@ -103,16 +103,20 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
       return bad(c, 'Password reset token is invalid or has expired.');
     }
     const hashedPassword = await hashPassword(password);
+    const newToken = crypto.randomUUID();
     const updatedUser: AuthUser = {
       ...targetUser,
       password: hashedPassword,
+      token: newToken,
       resetToken: undefined,
       resetTokenExpires: undefined,
     };
     await new AuthUserEntity(c.env, targetUser.id, 'id').save(updatedUser);
     await new AuthUserEntity(c.env, targetUser.email, 'email').save(updatedUser);
-    await new AuthUserEntity(c.env, targetUser.token, 'token').save(updatedUser);
-    return ok(c, { message: 'Password has been reset successfully.' });
+    await new AuthUserEntity(c.env, newToken, 'token').save(updatedUser);
+    // Delete old token entity
+    await new AuthUserEntity(c.env, targetUser.token, 'token').delete();
+    return ok(c, { token: newToken });
   });
   // --- PROTECTED ROUTES ---
   const protectedRoutes = new Hono<{ Bindings: Env; Variables: AuthVariables }>();

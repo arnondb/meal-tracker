@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { api } from '@/lib/api-client';
+import { useAuthStore } from '@/stores/useAuthStore';
 const resetPasswordSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string(),
@@ -20,6 +21,7 @@ type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 export function ResetPasswordPage() {
   const navigate = useNavigate();
   const { token } = useParams<{ token: string }>();
+  const login = useAuthStore(s => s.login);
   const {
     register,
     handleSubmit,
@@ -33,12 +35,13 @@ export function ResetPasswordPage() {
       return;
     }
     try {
-      await api('/api/auth/reset-password', {
+      const response = await api<{ token: string }>('/api/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify({ token, password: data.password }),
       });
       toast.success('Password has been reset successfully!');
-      navigate('/login');
+      await login(response.token);
+      navigate('/');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to reset password.');
     }
