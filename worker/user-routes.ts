@@ -121,11 +121,7 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     if (!user.familyId) {
       return ok(c, []);
     }
-    // FIX: Use the correct method to list all users
-    const listResponse = await c.env.AUTH_USER_EMAIL_INDEX.list();
-    const keys = listResponse.keys.map(k => k.name);
-    const userPromises = keys.map(email => new AuthUserEntity(c.env, email, 'email').getState());
-    const allUsers = await Promise.all(userPromises);
+    const allUsers = await AuthUserEntity.listAll(c.env);
     const familyMembers = allUsers
       .filter(u => u && u.familyId === user.familyId)
       .map(({ id, name, email }) => ({ id, name, email }));
@@ -152,7 +148,7 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
       return bad(c, 'User is not in a family.');
     }
     // 1. Find all members of the family
-    const { items: allUsers } = await AuthUserEntity.list(c.env);
+    const allUsers = await AuthUserEntity.listAll(c.env);
     const familyMembers = allUsers.filter(u => u.familyId === familyId);
     // 2. Find all meals and presets for the family
     const { items: allMeals } = await MealEntity.list(c.env);
