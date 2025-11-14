@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/lib/api-client';
 import { Meal, Preset } from '@shared/types';
+import { TimePicker } from './TimePicker';
 const mealSchema = z.object({
   description: z.string(),
   type: z.string().min(1, 'Meal type is required'),
@@ -49,21 +50,29 @@ export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate, addMeal, up
               time: format(new Date(meal.eatenAt), 'HH:mm'),
             });
           } else {
+            const now = new Date();
+            const currentMinutes = now.getMinutes();
+            const roundedMinutes = currentMinutes < 30 ? '00' : '30';
+            const initialTime = `${format(now, 'HH')}:${roundedMinutes}`;
             reset({
               description: '',
               type: fetchedPresets.length > 0 ? fetchedPresets[0].name : 'Other',
               customType: '',
-              time: format(new Date(), 'HH:mm'),
+              time: initialTime,
             });
           }
         } catch (error) {
           toast.error('Could not load meal pre-sets.');
           if (!meal) {
+            const now = new Date();
+            const currentMinutes = now.getMinutes();
+            const roundedMinutes = currentMinutes < 30 ? '00' : '30';
+            const initialTime = `${format(now, 'HH')}:${roundedMinutes}`;
             reset({
               description: '',
               type: 'Other',
               customType: '',
-              time: format(new Date(), 'HH:mm'),
+              time: initialTime,
             });
           }
         }
@@ -103,50 +112,58 @@ export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate, addMeal, up
   };
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent>
+      <SheetContent className="flex flex-col">
         <SheetHeader>
           <SheetTitle>{meal ? 'Edit Meal' : 'Log a New Meal'}</SheetTitle>
           <SheetDescription>
             Fill in the details of your meal. Click save when you're done.
           </SheetDescription>
         </SheetHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-6">
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
-            <Input id="description" {...register('description')} placeholder="e.g., Oatmeal with berries" />
-            {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="type">Meal Type</Label>
-            <Controller
-              name="type"
-              control={control}
-              render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a meal type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {presets.map((preset) => (
-                      <SelectItem key={preset.id} value={preset.name}>{preset.name}</SelectItem>
-                    ))}
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
-          {selectedType === 'Other' && (
-            <div className="space-y-2 animate-fade-in">
-              <Label htmlFor="customType">Custom Meal Type</Label>
-              <Input id="customType" {...register('customType')} placeholder="e.g., Brunch" />
-              {errors.customType && <p className="text-sm text-destructive">{errors.customType.message}</p>}
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col justify-between space-y-6 py-6">
+          <div className="space-y-6 px-1 overflow-y-auto">
+            <div className="space-y-2">
+              <Label htmlFor="description">Description (Optional)</Label>
+              <Input id="description" {...register('description')} placeholder="e.g., Oatmeal with berries" />
+              {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
             </div>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="time">Time</Label>
-            <Input id="time" type="time" {...register('time')} />
-            {errors.time && <p className="text-sm text-destructive">{errors.time.message}</p>}
+            <div className="space-y-2">
+              <Label htmlFor="type">Meal Type</Label>
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a meal type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {presets.map((preset) => (
+                        <SelectItem key={preset.id} value={preset.name}>{preset.name}</SelectItem>
+                      ))}
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+            {selectedType === 'Other' && (
+              <div className="space-y-2 animate-fade-in">
+                <Label htmlFor="customType">Custom Meal Type</Label>
+                <Input id="customType" {...register('customType')} placeholder="e.g., Brunch" />
+                {errors.customType && <p className="text-sm text-destructive">{errors.customType.message}</p>}
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="time">Time</Label>
+              <Controller
+                name="time"
+                control={control}
+                render={({ field }) => (
+                  <TimePicker value={field.value} onChange={field.onChange} />
+                )}
+              />
+              {errors.time && <p className="text-sm text-destructive">{errors.time.message}</p>}
+            </div>
           </div>
           <SheetFooter>
             <Button type="submit" disabled={isSubmitting} className="w-full bg-brand hover:bg-brand/90 text-brand-foreground">
