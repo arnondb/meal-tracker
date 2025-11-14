@@ -16,53 +16,45 @@ export function AppLogo({ className }: AppLogoProps) {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, ease: "backOut" }}
     >
-      {/* Pizza Slice */}
       <motion.path
-        d="M12 2 L4 20 C4 22, 8 22, 12 22 C16 22, 20 22, 20 20 L12 2 Z"
-        fill="currentColor"
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 1 }}
+        d="M12 2L3 10.44V21.89L12 18.11L21 21.89V10.44L12 2Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
         transition={{ duration: 1, delay: 0.2 }}
       />
-      {/* Toppings */}
-      <motion.circle
-        cx="12" cy="9" r="1.5" fill="hsl(var(--destructive))"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 0.8, type: 'spring' }}
+      <motion.path
+        d="M12 18V2"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 0.8, delay: 0.5 }}
       />
-      <motion.circle
-        cx="9" cy="14" r="1.5" fill="hsl(var(--destructive))"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 0.9, type: 'spring' }}
-      />
-      <motion.circle
-        cx="15" cy="14" r="1.5" fill="hsl(var(--destructive))"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 1.0, type: 'spring' }}
-      />
-      {/* Antenna */}
       <motion.path
         d="M12 2C14.5 4.5 14.5 7.5 12 10"
-        stroke="hsl(var(--foreground))"
-        strokeWidth="1.5"
+        stroke="currentColor"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
         initial={{ opacity: 0, scale: 0.5, x: -5 }}
         animate={{ opacity: 1, scale: 1, x: 0 }}
-        transition={{ duration: 0.5, delay: 1.2, type: 'spring', stiffness: 300 }}
+        transition={{ duration: 0.5, delay: 1, type: 'spring', stiffness: 300 }}
       />
       <motion.path
         d="M12 2C9.5 4.5 9.5 7.5 12 10"
-        stroke="hsl(var(--foreground))"
-        strokeWidth="1.5"
+        stroke="currentColor"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
         initial={{ opacity: 0, scale: 0.5, x: 5 }}
         animate={{ opacity: 1, scale: 1, x: 0 }}
-        transition={{ duration: 0.5, delay: 1.2, type: 'spring', stiffness: 300 }}
+        transition={{ duration: 0.5, delay: 1, type: 'spring', stiffness: 300 }}
       />
     </motion.svg>
   );

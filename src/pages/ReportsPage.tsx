@@ -74,7 +74,7 @@ export function ReportsPage() {
     }
     const fromDate = format(date.from, 'yyyy-MM-dd');
     const toDate = format(date.to, 'yyyy-MM-dd');
-    const filename = `ChronoPlate_Report_${fromDate}_to_${toDate}.csv`;
+    const filename = `MealTracker_Report_${fromDate}_to_${toDate}.csv`;
     exportToCsv(sortedMeals, filename);
   };
   return (

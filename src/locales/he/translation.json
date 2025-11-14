@@ -1,5 +1,5 @@
 {
-  "appLoading": "טוען את ChronoPlate...",
+  "appLoading": "טוען את Meal Tracker...",
   "header": {
     "dashboard": "לוח ראשי",
     "reports": "דוחות",
@@ -11,38 +11,38 @@
     "loading": "טוען...",
     "regenerateCode": "צור קוד חדש",
     "regenerateConfirmTitle": "ליצור קוד הצטרפות חדש?",
-    "regenerateConfirmDescription": "פעולה זו תבטל את תוקף קוד ההצטרפות הישן. חברי משפחה יצטרכו את הקוד החדש כדי להזמין אחרים. האם אתה בטוח שברצונך להמשיך?",
+    "regenerateConfirmDescription": "פעולה זו ת��טל את תוקף קוד ההצטרפות הישן. חברי משפחה יצטרכו את הקוד ה��דש כדי להזמין אחרים. האם אתה בטוח שברצונך לה��שיך?",
     "regenerateConfirmAction": "כן, צור חדש",
-    "openMenu": "פתח תפ��יט",
+    "openMenu": "פתח תפ����יט",
     "changeLanguage": "שנה שפה"
   },
   "home": {
     "title": "ארוחות",
     "today": "היום",
     "logMeal": "הוסף ארוחה",
-    "emptyTitle": "עדיין לא נרשמו ארוחות",
+    "emptyTitle": "עדיין לא נרשמו א��וחות",
     "emptyDescription": "לחץ על \"הוסף ארוחה\" כדי להתחיל.",
     "deleteDialog": {
-      "title": "האם אתה בטוח?",
+      "title": "��אם אתה בטוח?",
       "description": "לא ניתן ל��טל פעולה זו. פעולה זו תמחק לצמיתות את ריש��ם הארוחה.",
       "action": "מחק"
     }
   },
   "reports": {
     "title": "דוחות ארוחות",
-    "description": "נתח את הרגלי האכילה ש��ך לאורך זמן.",
+    "description": "נתח את הרגלי האכילה ש��ך ל��ורך זמן.",
     "datePickerPlaceholder": "בחר תאריך",
     "search": "חפש",
-    "searching": "מחפש...",
+    "searching": "��חפש...",
     "sortBy": "מיין לפי...",
     "newestFirst": "מהחדש לישן",
     "oldestFirst": "מהישן לחדש",
     "exportCsv": "יצ�� כ-CSV",
     "distributionTitle": "התפלגות סוגי ארוחות",
-    "distributionDescription": "פירוט הארוחות שלך לפי סוג עבור התקופה שנבחרה.",
+    "distributionDescription": "פירוט הארוחות שלך לפי סוג ע��ור התקופה שנבחרה.",
     "mealLogTitle": "יומן ארוחות ({{count}})",
-    "emptyTitle": "לא נמצאו ארוחות",
-    "emptyDescription": "לא נרשמו ארוחות בטווח הת��ריכים שנבחר. נסה להרחיב את החיפוש."
+    "emptyTitle": "לא נ��צאו ארוחות",
+    "emptyDescription": "לא נרשמו ארוחות בטווח הת��ריכים שנבחר. נסה להרחיב את החי��וש."
   },
   "settings": {
     "title": "הגדרות",
@@ -63,8 +63,8 @@
       "inputPlaceholder": "לדוגמה: שייק אחרי אימון",
       "addButton": "הוסף",
       "listTitle": "ההגדרות הקבועות שלך",
-      "emptyTitle": "אין ��דיין הגדרות קבועות",
-      "emptyDescription": "הוסף את סוג הארוחה המותאם אישית הראשון שלך למעלה."
+      "emptyTitle": "אין ����יין הגדרות קבועות",
+      "emptyDescription": "הוסף את סוג הארוחה המותא�� אישית הראשון שלך למעלה."
     },
     "dangerZone": {
       "title": "אזור סכנה",
@@ -76,7 +76,7 @@
       "deleteButton": "מחק",
       "deleteAccountDialog": {
         "title": "למחוק את חשבונך?",
-        "description": "זוהי פעולה ��בועה. כל הנתונים האישיים שלך יוסרו, ות��סר מהקבוצה המשפחתית שלך. האם אתה בטוח?",
+        "description": "זוהי פעולה ��בועה. כל הנתונים האישיים שלך יוסרו, ות����ר מהקבוצה המשפחתית שלך. האם אתה בטוח?",
         "action": "כן, מחק את חשבוני"
       },
       "deleteFamilyDialog": {
@@ -125,7 +125,7 @@
     "forgotEmailLabel": "אימייל",
     "forgotEmailPlaceholder": "m@example.com",
     "forgotButton": "שלח קוד איפוס",
-    "forgotSuccessMessage": "לצורך הדגמה זו, הקוד מוצג כאן במקום להישלח באימייל.",
+    "forgotSuccessMessage": "לצורך הד��מה זו, הקוד מוצג כאן במקום להישלח באימייל.",
     "forgotCopyToken": "העתק קוד",
     "forgotResetLink": "אפס את סיסמתך",
     "rememberPassword": "נזכר�� בסיסמה?",
@@ -156,7 +156,7 @@
     "savingButton": "שומר...",
     "validation": {
       "typeRequired": "נדרש לבח��ר סוג ארוחה",
-      "customTypeRequired": "נדרש להזין סוג מותאם אישית כאשר \"אחר\" נבחר"
+      "customTypeRequired": "נדרש להזין ��וג מותאם אישית כאשר \"אחר\" נבחר"
     }
   },
   "familyOnboarding": {
@@ -179,7 +179,7 @@
     }
   },
   "common": {
-    "cancel": "ביטול",
+    "cancel": "בי��ול",
     "other": "אחר"
   },
   "toasts": {
@@ -189,16 +189,16 @@
     "newJoinCodeSuccess": "קוד הצטרפות חדש נוצר בהצלחה!",
     "newJoinCodeError": "יצירת קוד חדש נכשלה.",
     "fetchMealsError": "טע��נת הארוחות נכשלה",
-    "deleteMealSuccess": "הארוחה נמחקה בהצלחה!",
+    "deleteMealSuccess": "ה��רוחה נמחקה בהצלחה!",
     "deleteMealError": "מחיקת הארוחה נכשלה.",
     "dateRangeWarning": "��נא בחר טווח תאריכים חוקי.",
     "fetchReportsError": "טעינת דוחות הארוחות נכשלה.",
     "exportNoDateWarning": "לא ניתן לייצא ללא ��ווח תאריכים חוקי.",
     "settingsLoadError": "טעינת נתוני ההגדרות נכשלה.",
-    "profileUpdateSuccess": "הפרופיל עודכן בהצלחה!",
+    "profileUpdateSuccess": "הפרופיל ��ודכן בהצלחה!",
     "profileUpdateError": "עדכון הפרופיל נכשל.",
-    "presetEmptyWarning": "שם ההגדרה הקבועה לא יכול להיות ריק.",
-    "presetAddSuccess": "ההגדרה הקבועה \"{{name}}\" נוספה!",
+    "presetEmptyWarning": "שם ההגדרה הקבועה לא ��כול להיות ריק.",
+    "presetAddSuccess": "ההגדרה הקבועה \"{{name}}\" נוס��ה!",
     "presetAddError": "הוספת ההגדרה הקבועה ��כשלה.",
     "presetDeleteSuccess": "ההגדרה הקבועה נמחקה בהצלחה!",
     "presetDeleteError": "מחיקת ההגדרה הקבועה נכשלה.",
@@ -207,7 +207,7 @@
     "deleteFamilySuccess": "המשפחה שלך נמחקה.",
     "deleteFamilyError": "מחיקת המשפחה נכשלה.",
     "loginSuccess": "התחברת בהצלחה!",
-    "loginError": "ההתחברות נכשלה. אנא בדוק את פרטיך.",
+    "loginError": "ההתחברות נכשלה. אנא בדוק את פרטי��.",
     "registerSuccess": "החשבון נוצר בהצלחה!",
     "registerError": "ההרשמה נכשלה. אנא נסה שוב.",
     "mealUpdateSuccess": "הארוחה עודכנה בהצלחה!",
@@ -220,8 +220,8 @@
     "familyJoinError": "ההצטרפות למשפחה נכשלה. אנא בדוק את הקוד.",
     "passwordResetTokenSuccess": "קוד איפוס סיסמה נוצר.",
     "passwordResetTokenError": "לא ניתן היה לעבד את הבקשה.",
-    "passwordResetTokenCopied": "הקוד הועתק ללוח!",
-    "passwordResetTokenMissing": "קוד האיפוס חסר.",
+    "passwordResetTokenCopied": "��קוד הועתק ללוח!",
+    "passwordResetTokenMissing": "��וד האיפוס חסר.",
     "passwordResetSuccess": "הסיסמה אופסה בהצלחה!",
     "passwordResetError": "איפוס הסיסמה נכשל."
   }

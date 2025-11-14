@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { UtensilsCrossed, Menu, LogOut, Copy, User as UserIcon, Users, RefreshCw, Loader2 } from 'lucide-react';
+import { Menu, LogOut, Copy, User as UserIcon, Users, RefreshCw, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { api } from '@/lib/api-client';
 import { AuthUser, Family } from '@shared/types';
 import { LanguageSwitcher } from '../LanguageSwitcher';
+import { AppLogo } from '../AppLogo';
 type PublicUser = Pick<AuthUser, 'id' | 'name' | 'email'>;
 export function AppHeader() {
   const { t } = useTranslation();
@@ -152,8 +153,8 @@ export function AppHeader() {
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-4">
               <Link to="/" className="flex items-center gap-2">
-                <UtensilsCrossed className="h-8 w-8 text-brand" />
-                <span className="font-heading text-2xl font-bold tracking-tight">ChronoPlate</span>
+                <AppLogo className="h-8 w-8 text-brand" />
+                <span className="font-heading text-2xl font-bold tracking-tight">Meal Tracker</span>
               </Link>
               {family && (
                 <>

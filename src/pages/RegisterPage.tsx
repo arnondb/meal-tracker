@@ -4,13 +4,14 @@ import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { UtensilsCrossed, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { api } from '@/lib/api-client';
+import { AppLogo } from '@/components/AppLogo';
 const registerSchema = (t: (key: string) => string) => z.object({
   name: z.string().min(2, t('register.validation.nameRequired')),
   email: z.string().email(t('register.validation.emailInvalid')),
@@ -46,8 +47,8 @@ export function RegisterPage() {
       <Card className="mx-auto max-w-sm w-full">
         <CardHeader className="text-center">
           <div className="flex justify-center items-center gap-2 mb-4">
-            <UtensilsCrossed className="h-8 w-8 text-brand" />
-            <span className="font-heading text-3xl font-bold tracking-tight">ChronoPlate</span>
+            <AppLogo className="h-8 w-8 text-brand" />
+            <span className="font-heading text-3xl font-bold tracking-tight">Meal Tracker</span>
           </div>
           <CardTitle className="text-2xl">{t('register.title')}</CardTitle>
           <CardDescription>{t('register.description')}</CardDescription>
