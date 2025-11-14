@@ -3,7 +3,6 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, set } from 'date-fns';
-import { create } from 'zustand';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -22,35 +21,16 @@ const mealSchema = z.object({
   path: ['customType'],
 });
 type MealFormData = z.infer<typeof mealSchema>;
-type MealStore = {
-  addMeal: (meal: Meal) => void;
-  updateMeal: (meal: Meal) => void;
-};
-// This is a simplified selector from the HomePage store.
-const useMealStore = create<MealStore>(() => ({
-  addMeal: () => {},
-  updateMeal: () => {},
-}));
-if (typeof window !== 'undefined') {
-  try {
-    const mainStore = (window as any).__ZUSTAND_STORES__.MealStore;
-    if (mainStore) {
-      useMealStore.setState(mainStore.getState());
-      mainStore.subscribe(useMealStore.setState);
-    }
-  } catch (e) {
-    // Store not found, this is fine.
-  }
-}
 interface AddMealSheetProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   meal: Meal | null;
   currentDate: Date;
+  addMeal: (meal: Meal) => void;
+  updateMeal: (meal: Meal) => void;
 }
 const defaultMealTypes: MealType[] = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
-export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate }: AddMealSheetProps) {
-  const { addMeal, updateMeal } = useMealStore.getState();
+export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate, addMeal, updateMeal }: AddMealSheetProps) {
   const [presets, setPresets] = useState<Preset[]>([]);
   const { register, handleSubmit, control, watch, reset, formState: { errors, isSubmitting } } = useForm<MealFormData>({
     resolver: zodResolver(mealSchema),
@@ -120,7 +100,6 @@ export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate }: AddMealSh
       toast.error('An error occurred. Please try again.');
     }
   };
-  const allMealTypes = [...defaultMealTypes, ...presets.map(p => p.name), 'Other'];
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetContent>

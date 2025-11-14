@@ -47,10 +47,7 @@ export function HomePage() {
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
   const [deletingMealId, setDeletingMealId] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const fetchMeals = useMealStore((s) => s.fetchMeals);
-  const meals = useMealStore((s) => s.meals);
-  const isLoading = useMealStore((s) => s.isLoading);
-  const removeMeal = useMealStore((s) => s.removeMeal);
+  const { fetchMeals, meals, isLoading, addMeal, updateMeal, removeMeal } = useMealStore();
   useEffect(() => {
     fetchMeals(currentDate);
   }, [fetchMeals, currentDate]);
@@ -135,6 +132,8 @@ export function HomePage() {
         setIsOpen={setSheetOpen}
         meal={editingMeal}
         currentDate={currentDate}
+        addMeal={addMeal}
+        updateMeal={updateMeal}
       />
       <AlertDialog open={!!deletingMealId} onOpenChange={(open) => !open && setDeletingMealId(null)}>
         <AlertDialogContent>
