@@ -15,6 +15,7 @@ import { api } from '@/lib/api-client';
 import { Meal } from '@shared/types';
 import { cn } from '@/lib/utils';
 import { exportToCsv } from '@/lib/csv-exporter';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 export function ReportsPage() {
   const [date, setDate] = useState<DateRange | undefined>({
@@ -23,6 +24,7 @@ export function ReportsPage() {
   });
   const [meals, setMeals] = useState<Meal[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
   const fetchMeals = useCallback(async () => {
     if (!date?.from || !date?.to) {
       toast.warning('Please select a valid date range.');
@@ -35,7 +37,7 @@ export function ReportsPage() {
         endDate: date.to.toISOString(),
       });
       const fetchedMeals = await api<Meal[]>(`/api/meals?${params.toString()}`);
-      setMeals(fetchedMeals.sort((a, b) => new Date(b.eatenAt).getTime() - new Date(a.eatenAt).getTime()));
+      setMeals(fetchedMeals);
     } catch (error) {
       toast.error('Failed to fetch meal reports.');
       console.error(error);
@@ -46,6 +48,13 @@ export function ReportsPage() {
   useEffect(() => {
     fetchMeals();
   }, [fetchMeals]);
+  const sortedMeals = useMemo(() => {
+    return [...meals].sort((a, b) => {
+      const dateA = parseISO(a.eatenAt).getTime();
+      const dateB = parseISO(b.eatenAt).getTime();
+      return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+  }, [meals, sortBy]);
   const mealTypeDistribution = useMemo(() => {
     const counts = meals.reduce((acc, meal) => {
       const type = meal.type === 'Other' ? meal.customType || 'Other' : meal.type;
@@ -62,7 +71,7 @@ export function ReportsPage() {
     const fromDate = format(date.from, 'yyyy-MM-dd');
     const toDate = format(date.to, 'yyyy-MM-dd');
     const filename = `ChronoPlate_Report_${fromDate}_to_${toDate}.csv`;
-    exportToCsv(meals, filename);
+    exportToCsv(sortedMeals, filename);
   };
   return (
     <AppLayout>
@@ -73,14 +82,14 @@ export function ReportsPage() {
             <p className="mt-2 text-lg text-muted-foreground">Analyze your eating habits over time.</p>
           </header>
           <Card className="mb-8 p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     id="date"
                     variant={"outline"}
                     className={cn(
-                      "w-full sm:w-[300px] justify-start text-left font-normal",
+                      "w-full sm:w-auto md:w-[300px] justify-start text-left font-normal",
                       !date && "text-muted-foreground"
                     )}
                   >
@@ -113,10 +122,21 @@ export function ReportsPage() {
                 <Search className="mr-2 h-4 w-4" />
                 {isLoading ? 'Searching...' : 'Search'}
               </Button>
-              <Button onClick={handleExport} disabled={isLoading || meals.length === 0} variant="outline" className="w-full sm:w-auto">
-                <Download className="mr-2 h-4 w-4" />
-                Export CSV
-              </Button>
+              <div className="w-full sm:w-auto sm:ml-auto flex flex-col sm:flex-row gap-4">
+                <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'newest' | 'oldest')}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Sort by..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="oldest">Oldest First</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={handleExport} disabled={isLoading || meals.length === 0} variant="outline" className="w-full sm:w-auto">
+                  <Download className="mr-2 h-4 w-4" />
+                  Export CSV
+                </Button>
+              </div>
             </div>
           </Card>
           {isLoading ? (
@@ -175,10 +195,10 @@ export function ReportsPage() {
                 </CardContent>
               </Card>
               <div className="md:col-span-3 space-y-4">
-                <h2 className="text-2xl font-bold">Meal Log ({meals.length})</h2>
+                <h2 className="text-2xl font-bold">Meal Log ({sortedMeals.length})</h2>
                 <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4">
                   <AnimatePresence>
-                    {meals.map((meal) => (
+                    {sortedMeals.map((meal) => (
                        <motion.div
                         key={meal.id}
                         layout
