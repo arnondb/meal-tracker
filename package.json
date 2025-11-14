@@ -1,5 +1,5 @@
 {
-  "name": "chronoplate-e8mjq0gt2ynfq5pgag0xv",
+  "name": "vite-cf-do-v2-runner",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,8 +9,7 @@
     "lint": "eslint --cache -f json --quiet .",
     "preview": "bun run build && vite preview --host 0.0.0.0 --port ${PORT:-4173}",
     "deploy": "bun run build && wrangler deploy",
-    "cf-typegen": "wrangler types",
-    "prepare": "bun .bootstrap.js || true"
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -57,6 +56,8 @@
     "eslint-plugin-import": "^2.32.0",
     "framer-motion": "^12.23.0",
     "hono": "^4.8.5",
+    "i18next": "^25.6.2",
+    "i18next-browser-languagedetector": "^8.2.0",
     "immer": "^10.1.1",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.525.0",
@@ -68,6 +69,7 @@
     "react-flow": "^1.0.3",
     "react-hook-form": "^7.60.0",
     "react-hotkeys-hook": "^5.1.0",
+    "react-i18next": "^16.3.3",
     "react-resizable-panels": "^3.0.3",
     "react-router-dom": "6.30.0",
     "react-select": "^5.10.2",
