@@ -27,21 +27,7 @@ export class AuthUserEntity extends IndexedEntity<AuthUser> {
     // Also remove the primary ID from the main index
     await AuthUserEntity.removeFromIndex(env, user.id);
   }
-  static async listAll(env: Env): Promise<AuthUser[]> {
-    const allKeys: { name: string }[] = [];
-    let cursor: string | undefined;
 
-    do {
-      const listResponse: { keys: { name: string }[], list_complete: boolean, cursor?: string } = await env.AUTH_USER_EMAIL_INDEX.list({ cursor });
-      allKeys.push(...listResponse.keys);
-      cursor = listResponse.list_complete ? undefined : listResponse.cursor;
-    } while (cursor);
-
-    const userPromises = allKeys.map(k => new AuthUserEntity(env, k.name, 'email').getState().catch(() => null));
-    const allUsers = (await Promise.all(userPromises)).filter((u): u is AuthUser => u !== null);
-
-    return allUsers;
-  }
 }
 export class FamilyEntity extends IndexedEntity<Family> {
   static readonly entityName = "family";

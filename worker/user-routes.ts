@@ -121,9 +121,14 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     if (!user.familyId) {
       return ok(c, []);
     }
-    const allUsers = await AuthUserEntity.listAll(c.env);
+    // AuthUserEntity.listAll was removed. We now list all users from the index.
+    const listResult = await c.env.KV.list({ prefix: `${AuthUserEntity.indexName}:` });
+    const userKeys = listResult.keys.map(key => key.name);
+    const userPromises = userKeys.map(key => c.env.KV.get<AuthUser>(key, 'json'));
+    const allUsers = (await Promise.all(userPromises)).filter((u): u is AuthUser => u !== null);
+
     const familyMembers = allUsers
-      .filter(u => u && u.familyId === user.familyId)
+      .filter(u => u.familyId === user.familyId)
       .map(({ id, name, email }) => ({ id, name, email }));
     return ok(c, familyMembers);
   });
@@ -148,7 +153,10 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
       return bad(c, 'User is not in a family.');
     }
     // 1. Find all members of the family
-    const allUsers = await AuthUserEntity.listAll(c.env);
+    const listResult = await c.env.KV.list({ prefix: `${AuthUserEntity.indexName}:` });
+    const userKeys = listResult.keys.map(key => key.name);
+    const userPromises = userKeys.map(key => c.env.KV.get<AuthUser>(key, 'json'));
+    const allUsers = (await Promise.all(userPromises)).filter((u): u is AuthUser => u !== null);
     const familyMembers = allUsers.filter(u => u.familyId === familyId);
     // 2. Find all meals and presets for the family
     const { items: allMeals } = await MealEntity.list(c.env);
