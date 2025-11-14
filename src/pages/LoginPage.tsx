@@ -47,7 +47,7 @@ export function LoginPage() {
         <CardHeader className="text-center">
           <div className="flex justify-center items-center gap-2 mb-4">
             <AppLogo className="h-8 w-8 text-brand" />
-            <span className="font-heading text-3xl font-bold tracking-tight">Meal Tracker V2</span>
+            <span className="font-heading text-3xl font-bold tracking-tight">Meal Tracker</span>
           </div>
           <CardTitle className="text-2xl">{t('login.title')}</CardTitle>
           <CardDescription>{t('login.description')}</CardDescription>

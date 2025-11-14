@@ -15,13 +15,7 @@ export class AuthUserEntity extends IndexedEntity<AuthUser> {
     resetTokenExpires: undefined,
   };
   constructor(env: Env, id: string, key: 'id' | 'email' | 'token' = 'id') {
-    let entityId = id;
-    if (key === 'email') {
-      entityId = `email:${id}`;
-    } else if (key === 'token') {
-      entityId = `token:${id}`;
-    }
-    super(env, entityId);
+    super(env, id);
   }
   static async deleteUser(env: Env, user: AuthUser): Promise<void> {
     // This static method ensures all user-related data and indexes are cleaned up.
