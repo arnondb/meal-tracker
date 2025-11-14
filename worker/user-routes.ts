@@ -122,9 +122,12 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
       return ok(c, []);
     }
     // FIX: Use the correct method to list all users
-    const { items: allUsers } = await AuthUserEntity.list(c.env);
+    const listResponse = await c.env.AUTH_USER_EMAIL_INDEX.list();
+    const keys = listResponse.keys.map(k => k.name);
+    const userPromises = keys.map(email => new AuthUserEntity(c.env, email, 'email').getState());
+    const allUsers = await Promise.all(userPromises);
     const familyMembers = allUsers
-      .filter(u => u.familyId === user.familyId)
+      .filter(u => u && u.familyId === user.familyId)
       .map(({ id, name, email }) => ({ id, name, email }));
     return ok(c, familyMembers);
   });
