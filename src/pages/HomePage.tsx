@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { format, parseISO, isToday } from 'date-fns';
-import { UtensilsCrossed, Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { UtensilsCrossed, Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { create } from 'zustand';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,9 @@ import { Meal } from '@shared/types';
 import { MealCard } from '@/components/MealCard';
 import { AddMealSheet } from '@/components/AddMealSheet';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 type MealStore = {
   meals: Meal[];
   isLoading: boolean;
@@ -47,6 +50,7 @@ export function HomePage() {
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
   const [deletingMealId, setDeletingMealId] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isCalendarOpen, setCalendarOpen] = useState(false);
   const { fetchMeals, meals, isLoading, addMeal, updateMeal, removeMeal } = useMealStore();
   useEffect(() => {
     fetchMeals(currentDate);
@@ -74,11 +78,6 @@ export function HomePage() {
       setDeletingMealId(null);
     }
   };
-  const changeDate = (amount: number) => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() + amount);
-    setCurrentDate(newDate);
-  };
   const goToToday = () => {
     setCurrentDate(new Date());
   };
@@ -91,12 +90,36 @@ export function HomePage() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <CalendarIcon className="h-6 w-6 text-muted-foreground" />
-                <h2 className="text-2xl font-bold text-foreground">Today's Meals</h2>
+                <h2 className="text-2xl font-bold text-foreground">Meals</h2>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => changeDate(-1)}><ChevronLeft className="h-4 w-4" /></Button>
-                <span className="font-semibold text-lg text-brand">{format(currentDate, 'MMMM d, yyyy')}</span>
-                <Button variant="ghost" size="icon" onClick={() => changeDate(1)}><ChevronRight className="h-4 w-4" /></Button>
+                <Popover open={isCalendarOpen} onOpenChange={setCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-[240px] justify-start text-left font-normal",
+                        !currentDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {format(currentDate, "MMMM d, yyyy")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={currentDate}
+                      onSelect={(date) => {
+                        if (date) {
+                          setCurrentDate(date);
+                        }
+                        setCalendarOpen(false);
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
                 <Button variant="outline" size="sm" onClick={goToToday} disabled={isToday(currentDate)}>Today</Button>
               </div>
             </div>
