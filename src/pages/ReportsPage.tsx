@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { format, subDays, parseISO } from 'date-fns';
-import { Calendar as CalendarIcon, BarChart2, Search, UtensilsCrossed, Download } from 'lucide-react';
+import { Calendar as CalendarIcon, BarChart2, Search, Download } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -16,6 +16,7 @@ import { Meal } from '@shared/types';
 import { cn } from '@/lib/utils';
 import { exportToCsv } from '@/lib/csv-exporter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 export function ReportsPage() {
   const [date, setDate] = useState<DateRange | undefined>({
@@ -228,7 +229,7 @@ export function ReportsPage() {
             </div>
           ) : (
             <div className="text-center py-16 px-6 border-2 border-dashed rounded-lg">
-              <UtensilsCrossed className="mx-auto h-12 w-12 text-muted-foreground" />
+              <EmptyStateIllustration />
               <h3 className="mt-4 text-lg font-semibold text-foreground">No meals found</h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 No meals were logged in the selected date range. Try expanding your search.

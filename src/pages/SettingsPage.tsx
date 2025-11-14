@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Utensils, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Loader2 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
 import { Preset } from '@shared/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 export function SettingsPage() {
   const [presets, setPresets] = useState<Preset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -126,7 +127,7 @@ export function SettingsPage() {
               </AnimatePresence>
             ) : (
               <div className="text-center py-16 px-6 border-2 border-dashed rounded-lg">
-                <Utensils className="mx-auto h-12 w-12 text-muted-foreground" />
+                <EmptyStateIllustration />
                 <h3 className="mt-4 text-lg font-semibold text-foreground">No pre-sets yet</h3>
                 <p className="mt-1 text-sm text-muted-foreground">Add your first custom meal type above.</p>
               </div>

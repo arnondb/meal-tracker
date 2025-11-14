@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { format, parseISO, isToday } from 'date-fns';
-import { UtensilsCrossed, Plus, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { create } from 'zustand';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 type MealStore = {
   meals: Meal[];
   isLoading: boolean;
@@ -146,7 +147,7 @@ export function HomePage() {
               </AnimatePresence>
             ) : (
               <div className="text-center py-16 px-6 border-2 border-dashed rounded-lg">
-                <UtensilsCrossed className="mx-auto h-12 w-12 text-muted-foreground" />
+                <EmptyStateIllustration />
                 <h3 className="mt-4 text-lg font-semibold text-foreground">No meals logged yet</h3>
                 <p className="mt-1 text-sm text-muted-foreground">Click "Log a Meal" to get started.</p>
               </div>
