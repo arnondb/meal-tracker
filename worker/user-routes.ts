@@ -77,6 +77,15 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
   });
   protectedRoutes.delete('/api/auth/me', async (c) => {
     const user = c.get('user');
+    // If user is in a family, remove them from the member list
+    if (user.familyId) {
+      const familyEntity = new FamilyEntity(c.env, user.familyId);
+      if (await familyEntity.exists()) {
+        const family = await familyEntity.getState();
+        const updatedMemberIds = family.memberIds.filter(id => id !== user.id);
+        await familyEntity.patch({ memberIds: updatedMemberIds });
+      }
+    }
     await AuthUserEntity.deleteUser(c.env, user);
     return ok(c, { message: 'Account deleted successfully' });
   });
@@ -91,7 +100,7 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     }
     const familyId = crypto.randomUUID();
     const joinCode = crypto.randomUUID().substring(0, 8).toUpperCase();
-    const newFamily: Family = { id: familyId, name: body.name, joinCode };
+    const newFamily: Family = { id: familyId, name: body.name, joinCode, memberIds: [user.id] };
     await FamilyEntity.create(c.env, newFamily);
     const updatedUser: AuthUser = { ...user, familyId: newFamily.id };
     await new AuthUserEntity(c.env, user.id, 'id').save(updatedUser);
@@ -110,11 +119,17 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     if (!targetFamily) {
       return bad(c, 'Invalid join code');
     }
+    if (user.familyId) {
+      return bad(c, 'User is already in a family.');
+    }
+    const familyEntity = new FamilyEntity(c.env, targetFamily.id);
+    const updatedMemberIds = [...(targetFamily.memberIds || []), user.id];
+    await familyEntity.patch({ memberIds: updatedMemberIds });
     const updatedUser: AuthUser = { ...user, familyId: targetFamily.id };
     await new AuthUserEntity(c.env, user.id, 'id').save(updatedUser);
     await new AuthUserEntity(c.env, user.email, 'email').save(updatedUser);
     await new AuthUserEntity(c.env, user.token, 'token').save(updatedUser);
-    return ok(c, targetFamily);
+    return ok(c, await familyEntity.getState());
   });
   // FAMILY MANAGEMENT
   protectedRoutes.get('/api/family/members', async (c) => {
@@ -122,10 +137,21 @@ export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
     if (!user.familyId) {
       return ok(c, []);
     }
-    const { items: allUsers } = await AuthUserEntity.list(c.env);
-    const familyMembers = allUsers
-      .filter(u => u.familyId === user.familyId)
-      .map(({ id, name, email }) => ({ id, name, email }));
+    const familyEntity = new FamilyEntity(c.env, user.familyId);
+    if (!(await familyEntity.exists())) {
+      return ok(c, []); // Family doesn't exist, so no members
+    }
+    const family = await familyEntity.getState();
+    const memberIds = family.memberIds || [];
+    const memberPromises = memberIds.map(async (id) => {
+      const memberEntity = new AuthUserEntity(c.env, id, 'id');
+      if (await memberEntity.exists()) {
+        const member = await memberEntity.getState();
+        return { id: member.id, name: member.name, email: member.email };
+      }
+      return null;
+    });
+    const familyMembers = (await Promise.all(memberPromises)).filter(Boolean);
     return ok(c, familyMembers);
   });
   protectedRoutes.post('/api/family/regenerate-code', async (c) => {

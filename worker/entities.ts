@@ -32,7 +32,7 @@ export class AuthUserEntity extends IndexedEntity<AuthUser> {
 export class FamilyEntity extends IndexedEntity<Family> {
   static readonly entityName = "family";
   static readonly indexName = "families";
-  static readonly initialState: Family = { id: "", name: "", joinCode: "" };
+  static readonly initialState: Family = { id: "", name: "", joinCode: "", memberIds: [] };
 }
 export class MealEntity extends IndexedEntity<Meal> {
   static readonly entityName = "meal";

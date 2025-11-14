@@ -15,6 +15,7 @@ export interface Family {
   id: string;
   name: string;
   joinCode: string;
+  memberIds: string[];
 }
 // ChronoPlate Meal type
 export type MealType = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack' | 'Other';
