@@ -72,8 +72,10 @@ export function SettingsPage() {
         setIsLoading(false);
       }
     };
-    fetchData();
-  }, []);
+    if (family) {
+      fetchData();
+    }
+  }, [family]);
   const onProfileSubmit = async (data: ProfileFormData) => {
     try {
       const updatedUser = await api<AuthUser>('/api/auth/me', {
