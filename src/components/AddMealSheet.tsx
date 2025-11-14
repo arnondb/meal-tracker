@@ -99,18 +99,23 @@ export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate, addMeal, up
           body: JSON.stringify(payload),
         });
         updateMeal(updatedMeal);
-        toast.success('Meal updated successfully!');
+        toast.success('Meal updated successfully!', { duration: 1500 });
       } else {
         const newMeal = await api<Meal>('/api/meals', {
           method: 'POST',
           body: JSON.stringify(payload),
         });
         addMeal(newMeal);
-        toast.success('Meal added successfully!');
+        toast.success('Meal added successfully!', { duration: 1500 });
       }
       setIsOpen(false);
     } catch (error) {
       toast.error('An error occurred. Please try again.');
+    }
+  };
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
     }
   };
   return (
@@ -127,7 +132,7 @@ export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate, addMeal, up
           <div className="space-y-6 px-1 overflow-y-auto">
             <div className="space-y-2">
               <Label htmlFor="description">Description (Optional)</Label>
-              <Input id="description" {...register('description')} placeholder="e.g., Oatmeal with berries" />
+              <Input id="description" {...register('description')} placeholder="e.g., Oatmeal with berries" onKeyDown={handleKeyDown} />
               {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
             </div>
             <div className="space-y-2">
@@ -153,7 +158,7 @@ export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate, addMeal, up
             {selectedType === 'Other' && (
               <div className="space-y-2 animate-fade-in">
                 <Label htmlFor="customType">Custom Meal Type</Label>
-                <Input id="customType" {...register('customType')} placeholder="e.g., Brunch" />
+                <Input id="customType" {...register('customType')} placeholder="e.g., Brunch" onKeyDown={handleKeyDown} />
                 {errors.customType && <p className="text-sm text-destructive">{errors.customType.message}</p>}
               </div>
             )}
