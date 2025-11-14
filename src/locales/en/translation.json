@@ -1,0 +1,228 @@
+{
+  "appLoading": "Loading Meal Tracker...",
+  "header": {
+    "dashboard": "Dashboard",
+    "reports": "Reports",
+    "settings": "Settings",
+    "logout": "Logout",
+    "code": "Code:",
+    "family": "Family",
+    "familyMembers": "Family Members",
+    "loading": "Loading...",
+    "regenerateCode": "Regenerate Code",
+    "regenerateConfirmTitle": "Regenerate Join Code?",
+    "regenerateConfirmDescription": "This will invalidate the old join code. Family members will need the new code to invite others. Are you sure you want to continue?",
+    "regenerateConfirmAction": "Yes, Regenerate",
+    "openMenu": "Open menu",
+    "changeLanguage": "Change language"
+  },
+  "home": {
+    "title": "Meals",
+    "today": "Today",
+    "logMeal": "Log a Meal",
+    "emptyTitle": "No meals logged yet",
+    "emptyDescription": "Click \"Log a Meal\" to get started.",
+    "deleteDialog": {
+      "title": "Are you sure?",
+      "description": "This action cannot be undone. This will permanently delete this meal entry.",
+      "action": "Delete"
+    }
+  },
+  "reports": {
+    "title": "Meal Reports",
+    "description": "Analyze your eating habits over time.",
+    "datePickerPlaceholder": "Pick a date",
+    "search": "Search",
+    "searching": "Searching...",
+    "sortBy": "Sort by...",
+    "newestFirst": "Newest First",
+    "oldestFirst": "Oldest First",
+    "exportCsv": "Export CSV",
+    "distributionTitle": "Meal Type Distribution",
+    "distributionDescription": "A breakdown of your meals by type for the selected period.",
+    "mealLogTitle": "Meal Log ({{count}})",
+    "emptyTitle": "No meals found",
+    "emptyDescription": "No meals were logged in the selected date range. Try expanding your search."
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your profile and custom meal pre-sets.",
+    "profile": {
+      "title": "User Profile",
+      "description": "Update your personal information.",
+      "nameLabel": "Name",
+      "emailLabel": "Email",
+      "saveButton": "Save Changes",
+      "validation": {
+        "nameRequired": "Name must be at least 2 characters"
+      }
+    },
+    "presets": {
+      "addTitle": "Add New Pre-set",
+      "addDescription": "Create a new meal type for quick logging.",
+      "inputPlaceholder": "e.g., Post-workout Shake",
+      "addButton": "Add",
+      "listTitle": "Your Pre-sets",
+      "emptyTitle": "No pre-sets yet",
+      "emptyDescription": "Add your first custom meal type above."
+    },
+    "dangerZone": {
+      "title": "Danger Zone",
+      "description": "These actions are permanent and cannot be undone.",
+      "deleteFamilyTitle": "Delete Family",
+      "deleteFamilyDescription": "Permanently delete this family and all its data.",
+      "deleteAccountTitle": "Delete Account",
+      "deleteAccountDescription": "Permanently delete your personal account.",
+      "deleteButton": "Delete",
+      "deleteAccountDialog": {
+        "title": "Delete Your Account?",
+        "description": "This is permanent. All your personal data will be removed, and you will be removed from your family group. Are you sure?",
+        "action": "Yes, Delete My Account"
+      },
+      "deleteFamilyDialog": {
+        "title": "Delete Your Entire Family?",
+        "description": "This is permanent and will delete the entire family group, including all meals, presets, and accounts for ALL members. This cannot be undone.",
+        "action": "Yes, Delete This Family"
+      }
+    }
+  },
+  "login": {
+    "title": "Login",
+    "description": "Enter your email below to login to your account",
+    "emailLabel": "Email",
+    "emailPlaceholder": "m@example.com",
+    "passwordLabel": "Password",
+    "forgotPassword": "Forgot your password?",
+    "button": "Login",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "validation": {
+      "emailInvalid": "Invalid email address",
+      "passwordRequired": "Password is required"
+    }
+  },
+  "register": {
+    "title": "Sign Up",
+    "description": "Enter your information to create an account",
+    "nameLabel": "Name",
+    "namePlaceholder": "John Doe",
+    "emailLabel": "Email",
+    "emailPlaceholder": "m@example.com",
+    "passwordLabel": "Password",
+    "button": "Create an account",
+    "haveAccount": "Already have an account?",
+    "login": "Login",
+    "validation": {
+      "nameRequired": "Name must be at least 2 characters",
+      "emailInvalid": "Invalid email address",
+      "passwordRequired": "Password must be at least 6 characters"
+    }
+  },
+  "passwordReset": {
+    "forgotTitle": "Forgot Password",
+    "forgotDescription": "Enter your email and we will send you a reset token.",
+    "forgotDescriptionSuccess": "Use the token below to reset your password.",
+    "forgotEmailLabel": "Email",
+    "forgotEmailPlaceholder": "m@example.com",
+    "forgotButton": "Send Reset Token",
+    "forgotSuccessMessage": "For this demo, the token is displayed here instead of being emailed.",
+    "forgotCopyToken": "Copy Token",
+    "forgotResetLink": "Reset Your Password",
+    "rememberPassword": "Remember your password?",
+    "resetTitle": "Reset Password",
+    "resetDescription": "Enter your new password below.",
+    "newPasswordLabel": "New Password",
+    "confirmPasswordLabel": "Confirm New Password",
+    "resetButton": "Set New Password",
+    "validation": {
+      "passwordRequired": "Password must be at least 6 characters",
+      "passwordsDontMatch": "Passwords don't match"
+    }
+  },
+  "addMealSheet": {
+    "editTitle": "Edit Meal",
+    "addTitle": "Log a New Meal",
+    "editingFor": "Editing meal for",
+    "loggingFor": "Logging a meal for",
+    "descriptionLabel": "Description (Optional)",
+    "descriptionPlaceholder": "e.g., Oatmeal with berries",
+    "typeLabel": "Meal Type",
+    "typePlaceholder": "Select a meal type",
+    "customTypeLabel": "Custom Meal Type",
+    "customTypePlaceholder": "e.g., Brunch",
+    "timeLabel": "Time",
+    "timePlaceholder": "Pick a time",
+    "saveButton": "Save Meal",
+    "savingButton": "Saving...",
+    "validation": {
+      "typeRequired": "Meal type is required",
+      "customTypeRequired": "Custom type is required when \"Other\" is selected"
+    }
+  },
+  "familyOnboarding": {
+    "title": "Family Setup",
+    "description": "To start logging meals, create a new family or join an existing one.",
+    "createTitle": "Create a New Family",
+    "createDescription": "Start a new meal tracking group for your family.",
+    "createNameLabel": "Family Name",
+    "createNamePlaceholder": "e.g., The Smiths",
+    "createButton": "Create Family",
+    "joinTitle": "Join an Existing Family",
+    "joinDescription": "Enter a join code from a family member.",
+    "joinCodeLabel": "Join Code",
+    "joinCodePlaceholder": "Enter join code",
+    "joinButton": "Join Family",
+    "or": "Or",
+    "validation": {
+      "createNameRequired": "Family name must be at least 2 characters",
+      "joinCodeRequired": "Join code is required"
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "other": "Other"
+  },
+  "toasts": {
+    "loggedOut": "You have been logged out.",
+    "joinCodeCopied": "Join code copied!",
+    "familyMembersLoadError": "Could not load family members.",
+    "newJoinCodeSuccess": "New join code generated!",
+    "newJoinCodeError": "Failed to generate new code.",
+    "fetchMealsError": "Failed to fetch meals",
+    "deleteMealSuccess": "Meal deleted successfully!",
+    "deleteMealError": "Failed to delete meal.",
+    "dateRangeWarning": "Please select a valid date range.",
+    "fetchReportsError": "Failed to fetch meal reports.",
+    "exportNoDateWarning": "Cannot export without a valid date range.",
+    "settingsLoadError": "Failed to load settings data.",
+    "profileUpdateSuccess": "Profile updated successfully!",
+    "profileUpdateError": "Failed to update profile.",
+    "presetEmptyWarning": "Preset name cannot be empty.",
+    "presetAddSuccess": "Preset \"{{name}}\" added!",
+    "presetAddError": "Failed to add preset.",
+    "presetDeleteSuccess": "Preset deleted successfully!",
+    "presetDeleteError": "Failed to delete preset.",
+    "deleteAccountSuccess": "Your account has been deleted.",
+    "deleteAccountError": "Failed to delete account.",
+    "deleteFamilySuccess": "Your family has been deleted.",
+    "deleteFamilyError": "Failed to delete family.",
+    "loginSuccess": "Logged in successfully!",
+    "loginError": "Login failed. Please check your credentials.",
+    "registerSuccess": "Account created successfully!",
+    "registerError": "Registration failed. Please try again.",
+    "mealUpdateSuccess": "Meal updated successfully!",
+    "mealAddSuccess": "Meal added successfully!",
+    "mealSaveError": "An error occurred. Please try again.",
+    "loadPresetsError": "Could not load meal pre-sets.",
+    "familyCreateSuccess": "Family created successfully!",
+    "familyCreateError": "Failed to create family.",
+    "familyJoinSuccess": "Successfully joined family!",
+    "familyJoinError": "Failed to join family. Please check the code.",
+    "passwordResetTokenSuccess": "Password reset token generated.",
+    "passwordResetTokenError": "Could not process request.",
+    "passwordResetTokenCopied": "Token copied to clipboard!",
+    "passwordResetTokenMissing": "Reset token is missing.",
+    "passwordResetSuccess": "Password has been reset successfully!",
+    "passwordResetError": "Failed to reset password."
+  }
+}

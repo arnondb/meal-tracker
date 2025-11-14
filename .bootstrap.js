@@ -77,10 +77,7 @@ function updateWranglerJsonc() {
 }
 
 function runSetupCommands() {
-    const commands = [
-    "bun add i18next react-i18next i18next-browser-languagedetector",
-    "bun install i18next react-i18next i18next-browser-languagedetector"
-];
+    const commands = [];
     
     if (commands.length === 0) {
         console.log('⊘ No setup commands to run');
