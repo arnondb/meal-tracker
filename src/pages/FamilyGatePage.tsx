@@ -1,8 +1,7 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Copy, Loader2, LogOut } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -18,11 +17,10 @@ const joinSchema = z.object({
 });
 type JoinFormData = z.infer<typeof joinSchema>;
 export function FamilyGatePage() {
-  const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const family = useAuthStore(s => s.family);
+  const setFamily = useAuthStore(s => s.setFamily);
   const logout = useAuthStore(s => s.logout);
-  const checkAuth = useAuthStore(s => s.checkAuth);
   const {
     register,
     handleSubmit,
@@ -30,11 +28,6 @@ export function FamilyGatePage() {
   } = useForm<JoinFormData>({
     resolver: zodResolver(joinSchema),
   });
-  useEffect(() => {
-    if (family) {
-      navigate('/');
-    }
-  }, [family, navigate]);
   const handleCopyCode = () => {
     if (family?.joinCode) {
       navigator.clipboard.writeText(family.joinCode);
@@ -43,12 +36,11 @@ export function FamilyGatePage() {
   };
   const onSubmit = async (data: JoinFormData) => {
     try {
-      await api<Family>('/api/families/join', {
+      const updatedFamily = await api<Family>('/api/families/join', {
         method: 'POST',
         body: JSON.stringify({ joinCode: data.joinCode }),
       });
-      // After successfully joining, re-check auth status to get the updated user and family info
-      await checkAuth();
+      setFamily(updatedFamily);
       toast.success('Successfully joined family!');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to join family.');
@@ -65,9 +57,9 @@ export function FamilyGatePage() {
           <div className="grid md:grid-cols-2 gap-8">
             <Card>
               <CardHeader>
-                <CardTitle>Your Family Group</CardTitle>
+                <CardTitle>Create or Share a Family</CardTitle>
                 <CardDescription>
-                  Share this code with others to invite them to your family group.
+                  Your family group has been created. Share this code with others to invite them.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

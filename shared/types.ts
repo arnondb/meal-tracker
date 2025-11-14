@@ -3,26 +3,25 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
 }
-// Minimal real-world chat example types (shared by frontend and worker)
-export interface User {
+// Auth & Family
+export interface AuthUser {
   id: string;
   name: string;
+  email: string;
+  familyId: string | null;
+  token: string;
 }
-export interface Chat {
+export interface Family {
   id: string;
-  title: string;
-}
-export interface ChatMessage {
-  id: string;
-  chatId: string;
-  userId: string;
-  text: string;
-  ts: number; // epoch millis
+  joinCode: string;
 }
 // ChronoPlate Meal type
 export type MealType = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack' | 'Other';
 export interface Meal {
   id: string;
+  familyId: string;
+  userId: string;
+  userName: string;
   description: string;
   type: MealType | string; // Allow custom strings from presets
   customType?: string;
@@ -31,5 +30,6 @@ export interface Meal {
 // ChronoPlate Preset type
 export interface Preset {
   id: string;
+  familyId: string;
   name: string;
 }

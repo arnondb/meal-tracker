@@ -1,11 +1,10 @@
 import { createMiddleware } from 'hono/factory';
 import { AuthUserEntity } from './entities';
 import type { AuthUser } from '@shared/types';
-import type { Env } from './core-utils';
 export type AuthVariables = {
   user: AuthUser;
 };
-export const authMiddleware = createMiddleware<{ Bindings: Env; Variables: AuthVariables }>(async (c, next) => {
+export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
   const authHeader = c.req.header('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return c.json({ success: false, error: 'Unauthorized' }, 401);
