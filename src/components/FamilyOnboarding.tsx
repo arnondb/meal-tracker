@@ -13,11 +13,11 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { api } from '@/lib/api-client';
 import { Family } from '@shared/types';
 const createSchema = (t: (key: string) => string) => z.object({
-  name: z.string().min(2, t('familyOnboarding.createNameError')),
+  name: z.string().min(2, t('familyOnboarding.validation.createNameRequired')),
 });
 type CreateFormData = z.infer<ReturnType<typeof createSchema>>;
 const joinSchema = (t: (key: string) => string) => z.object({
-  joinCode: z.string().min(1, t('familyOnboarding.joinCodeError')),
+  joinCode: z.string().min(1, t('familyOnboarding.validation.joinCodeRequired')),
 });
 type JoinFormData = z.infer<ReturnType<typeof joinSchema>>;
 export function FamilyOnboarding() {

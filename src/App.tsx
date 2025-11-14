@@ -13,7 +13,7 @@ import { FamilySetupPage } from './pages/FamilySetupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 export function App() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const checkAuth = useAuthStore((s) => s.checkAuth);
   const isInitialized = useAuthStore((s) => s.isInitialized);
   const setInitialized = useAuthStore((s) => s.setInitialized);
@@ -31,7 +31,7 @@ export function App() {
   if (!isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground animate-pulse">Loading ChronoPlate...</p>
+        <p className="text-muted-foreground animate-pulse">{t('appLoading')}</p>
       </div>
     );
   }

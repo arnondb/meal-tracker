@@ -12,8 +12,8 @@ import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { api } from '@/lib/api-client';
 const loginSchema = (t: (key: string) => string) => z.object({
-  email: z.string().email(t('login.emailError')),
-  password: z.string().min(1, t('login.passwordError')),
+  email: z.string().email(t('login.validation.emailInvalid')),
+  password: z.string().min(1, t('login.validation.passwordRequired')),
 });
 type LoginFormData = z.infer<ReturnType<typeof loginSchema>>;
 export function LoginPage() {

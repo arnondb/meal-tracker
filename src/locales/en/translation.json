@@ -1,4 +1,5 @@
 {
+  "appLoading": "Loading ChronoPlate...",
   "header": {
     "dashboard": "Dashboard",
     "reports": "Reports",
@@ -13,10 +14,7 @@
     "regenerateConfirmDescription": "This will invalidate the old join code. Family members will need the new code to invite others. Are you sure you want to continue?",
     "regenerateConfirmAction": "Yes, Regenerate",
     "openMenu": "Open menu",
-    "userMenu": {
-      "copyCode": "Copy Join Code",
-      "familyManagement": "Family Management"
-    }
+    "changeLanguage": "Change language"
   },
   "home": {
     "title": "Meals",
@@ -54,7 +52,10 @@
       "description": "Update your personal information.",
       "nameLabel": "Name",
       "emailLabel": "Email",
-      "saveButton": "Save Changes"
+      "saveButton": "Save Changes",
+      "validation": {
+        "nameRequired": "Name must be at least 2 characters"
+      }
     },
     "presets": {
       "addTitle": "Add New Pre-set",
@@ -94,7 +95,11 @@
     "forgotPassword": "Forgot your password?",
     "button": "Login",
     "noAccount": "Don't have an account?",
-    "signUp": "Sign up"
+    "signUp": "Sign up",
+    "validation": {
+      "emailInvalid": "Invalid email address",
+      "passwordRequired": "Password is required"
+    }
   },
   "register": {
     "title": "Sign Up",
@@ -106,7 +111,33 @@
     "passwordLabel": "Password",
     "button": "Create an account",
     "haveAccount": "Already have an account?",
-    "login": "Login"
+    "login": "Login",
+    "validation": {
+      "nameRequired": "Name must be at least 2 characters",
+      "emailInvalid": "Invalid email address",
+      "passwordRequired": "Password must be at least 6 characters"
+    }
+  },
+  "passwordReset": {
+    "forgotTitle": "Forgot Password",
+    "forgotDescription": "Enter your email and we will send you a reset token.",
+    "forgotDescriptionSuccess": "Use the token below to reset your password.",
+    "forgotEmailLabel": "Email",
+    "forgotEmailPlaceholder": "m@example.com",
+    "forgotButton": "Send Reset Token",
+    "forgotSuccessMessage": "For this demo, the token is displayed here instead of being emailed.",
+    "forgotCopyToken": "Copy Token",
+    "forgotResetLink": "Reset Your Password",
+    "rememberPassword": "Remember your password?",
+    "resetTitle": "Reset Password",
+    "resetDescription": "Enter your new password below.",
+    "newPasswordLabel": "New Password",
+    "confirmPasswordLabel": "Confirm New Password",
+    "resetButton": "Set New Password",
+    "validation": {
+      "passwordRequired": "Password must be at least 6 characters",
+      "passwordsDontMatch": "Passwords don't match"
+    }
   },
   "addMealSheet": {
     "editTitle": "Edit Meal",
@@ -141,7 +172,11 @@
     "joinCodeLabel": "Join Code",
     "joinCodePlaceholder": "Enter join code",
     "joinButton": "Join Family",
-    "or": "Or"
+    "or": "Or",
+    "validation": {
+      "createNameRequired": "Family name must be at least 2 characters",
+      "joinCodeRequired": "Join code is required"
+    }
   },
   "common": {
     "cancel": "Cancel",
@@ -182,6 +217,12 @@
     "familyCreateSuccess": "Family created successfully!",
     "familyCreateError": "Failed to create family.",
     "familyJoinSuccess": "Successfully joined family!",
-    "familyJoinError": "Failed to join family. Please check the code."
+    "familyJoinError": "Failed to join family. Please check the code.",
+    "passwordResetTokenSuccess": "Password reset token generated.",
+    "passwordResetTokenError": "Could not process request.",
+    "passwordResetTokenCopied": "Token copied to clipboard!",
+    "passwordResetTokenMissing": "Reset token is missing.",
+    "passwordResetSuccess": "Password has been reset successfully!",
+    "passwordResetError": "Failed to reset password."
   }
 }

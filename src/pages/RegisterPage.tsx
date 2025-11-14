@@ -12,9 +12,9 @@ import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { api } from '@/lib/api-client';
 const registerSchema = (t: (key: string) => string) => z.object({
-  name: z.string().min(2, t('register.nameError')),
-  email: z.string().email(t('register.emailError')),
-  password: z.string().min(6, t('register.passwordError')),
+  name: z.string().min(2, t('register.validation.nameRequired')),
+  email: z.string().email(t('register.validation.emailInvalid')),
+  password: z.string().min(6, t('register.validation.passwordRequired')),
 });
 type RegisterFormData = z.infer<ReturnType<typeof registerSchema>>;
 export function RegisterPage() {

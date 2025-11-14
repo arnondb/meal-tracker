@@ -20,7 +20,7 @@ import { EmptyStateIllustration } from '@/components/EmptyStateIllustration';
 import { FamilyOnboarding } from '@/components/FamilyOnboarding';
 import { useAuthStore } from '@/stores/useAuthStore';
 const profileSchema = (t: (key: string) => string) => z.object({
-  name: z.string().min(2, t('settings.profile.nameError')),
+  name: z.string().min(2, t('settings.profile.validation.nameRequired')),
 });
 type ProfileFormData = z.infer<ReturnType<typeof profileSchema>>;
 export function SettingsPage() {
