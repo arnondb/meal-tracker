@@ -19,6 +19,9 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
 export const userRoutes = (app: Hono<{ Bindings: Env }>) => {
   // --- PUBLIC ROUTES ---
   app.get('/api/health', (c) => c.json({ success: true, data: { status: 'healthy', timestamp: new Date().toISOString() }}));
+
+
+
   app.post('/api/auth/register', async (c) => {
     const body = await c.req.json<{ name?: string; email?: string; password?: string }>();
     if (!isStr(body.name) || !isStr(body.email) || !isStr(body.password)) {
