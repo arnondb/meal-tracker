@@ -1,148 +1,156 @@
-// Home page of the app, Currently a demo page for demonstration.
-// Please rewrite this file to implement your own logic. Do not replace or delete it, simply rewrite this HomePage.tsx file.
-import { useEffect } from 'react'
-import { Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/ThemeToggle'
-import { Toaster, toast } from '@/components/ui/sonner'
-import { create } from 'zustand'
-import { useShallow } from 'zustand/react/shallow'
-import { AppLayout } from '@/components/layout/AppLayout'
-
-// Timer store: independent slice with a clear, minimal API, for demonstration
-type TimerState = {
-  isRunning: boolean;
-  elapsedMs: number;
-  start: () => void;
-  pause: () => void;
-  reset: () => void;
-  tick: (deltaMs: number) => void;
-}
-
-const useTimerStore = create<TimerState>((set) => ({
-  isRunning: false,
-  elapsedMs: 0,
-  start: () => set({ isRunning: true }),
-  pause: () => set({ isRunning: false }),
-  reset: () => set({ elapsedMs: 0, isRunning: false }),
-  tick: (deltaMs) => set((s) => ({ elapsedMs: s.elapsedMs + deltaMs })),
-}))
-
-// Counter store: separate slice to showcase multiple stores without coupling
-type CounterState = {
-  count: number;
-  inc: () => void;
-  reset: () => void;
-}
-
-const useCounterStore = create<CounterState>((set) => ({
-  count: 0,
-  inc: () => set((s) => ({ count: s.count + 1 })),
-  reset: () => set({ count: 0 }),
-}))
-
-function formatDuration(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000))
-  const m = Math.floor(total / 60)
-  const s = total % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
+import { useEffect, useState, useMemo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { format, parseISO } from 'date-fns';
+import { UtensilsCrossed, Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { create } from 'zustand';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { Button } from '@/components/ui/button';
+import { Toaster, toast } from '@/components/ui/sonner';
+import { Skeleton } from '@/components/ui/skeleton';
+import { api } from '@/lib/api-client';
+import { Meal } from '@shared/types';
+import { MealCard } from '@/components/MealCard';
+import { AddMealSheet } from '@/components/AddMealSheet';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+type MealStore = {
+  meals: Meal[];
+  isLoading: boolean;
+  error: string | null;
+  fetchMeals: (date: Date) => Promise<void>;
+  addMeal: (meal: Meal) => void;
+  updateMeal: (meal: Meal) => void;
+  removeMeal: (id: string) => void;
+};
+const useMealStore = create<MealStore>((set) => ({
+  meals: [],
+  isLoading: true,
+  error: null,
+  fetchMeals: async (date) => {
+    set({ isLoading: true, error: null });
+    try {
+      const dateString = format(date, 'yyyy-MM-dd');
+      const meals = await api<Meal[]>(`/api/meals?date=${dateString}`);
+      const sortedMeals = meals.sort((a, b) => new Date(a.eatenAt).getTime() - new Date(b.eatenAt).getTime());
+      set({ meals: sortedMeals, isLoading: false });
+    } catch (err) {
+      const error = err instanceof Error ? err.message : 'Failed to fetch meals';
+      set({ error, isLoading: false });
+      toast.error(error);
+    }
+  },
+  addMeal: (meal) => set((state) => ({ meals: [...state.meals, meal].sort((a, b) => new Date(a.eatenAt).getTime() - new Date(b.eatenAt).getTime()) })),
+  updateMeal: (meal) => set((state) => ({ meals: state.meals.map((m) => (m.id === meal.id ? meal : m)).sort((a, b) => new Date(a.eatenAt).getTime() - new Date(b.eatenAt).getTime()) })),
+  removeMeal: (id) => set((state) => ({ meals: state.meals.filter((m) => m.id !== id) })),
+}));
 export function HomePage() {
-  // Select only what is needed to avoid unnecessary re-renders
-  const { isRunning, elapsedMs } = useTimerStore(
-    useShallow((s) => ({ isRunning: s.isRunning, elapsedMs: s.elapsedMs })),
-  )
-  const start = useTimerStore((s) => s.start)
-  const pause = useTimerStore((s) => s.pause)
-  const resetTimer = useTimerStore((s) => s.reset)
-  const count = useCounterStore((s) => s.count)
-  const inc = useCounterStore((s) => s.inc)
-  const resetCount = useCounterStore((s) => s.reset)
-
-  // Drive the timer only while running; avoid update-depth issues with a scoped RAF
+  const [isSheetOpen, setSheetOpen] = useState(false);
+  const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
+  const [deletingMealId, setDeletingMealId] = useState<string | null>(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const fetchMeals = useMealStore((s) => s.fetchMeals);
+  const meals = useMealStore((s) => s.meals);
+  const isLoading = useMealStore((s) => s.isLoading);
+  const removeMeal = useMealStore((s) => s.removeMeal);
   useEffect(() => {
-    if (!isRunning) return
-    let raf = 0
-    let last = performance.now()
-    const loop = () => {
-      const now = performance.now()
-      const delta = now - last
-      last = now
-      // Read store API directly to keep effect deps minimal and stable
-      useTimerStore.getState().tick(delta)
-      raf = requestAnimationFrame(loop)
+    fetchMeals(currentDate);
+  }, [fetchMeals, currentDate]);
+  const handleAddMeal = () => {
+    setEditingMeal(null);
+    setSheetOpen(true);
+  };
+  const handleEditMeal = (meal: Meal) => {
+    setEditingMeal(meal);
+    setSheetOpen(true);
+  };
+  const handleDeleteMeal = (id: string) => {
+    setDeletingMealId(id);
+  };
+  const confirmDelete = async () => {
+    if (!deletingMealId) return;
+    try {
+      await api(`/api/meals/${deletingMealId}`, { method: 'DELETE' });
+      removeMeal(deletingMealId);
+      toast.success('Meal deleted successfully!');
+    } catch (err) {
+      toast.error('Failed to delete meal.');
+    } finally {
+      setDeletingMealId(null);
     }
-    raf = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(raf)
-  }, [isRunning])
-
-  const onPleaseWait = () => {
-    inc()
-    if (!isRunning) {
-      start()
-      toast.success('Building your app…', {
-        description: 'Hang tight, we\'re setting everything up.',
-      })
-    } else {
-      pause()
-      toast.info('Taking a short pause', {
-        description: 'We\'ll continue shortly.',
-      })
-    }
-  }
-
-  const formatted = formatDuration(elapsedMs)
-
+  };
+  const changeDate = (amount: number) => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() + amount);
+    setCurrentDate(newDate);
+  };
+  const sortedMeals = useMemo(() => meals.slice().sort((a, b) => parseISO(a.eatenAt).getTime() - parseISO(b.eatenAt).getTime()), [meals]);
   return (
     <AppLayout>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-4 overflow-hidden relative">
-        <ThemeToggle />
-        <div className="absolute inset-0 bg-gradient-rainbow opacity-10 dark:opacity-20 pointer-events-none" />
-        <div className="text-center space-y-8 relative z-10 animate-fade-in">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-primary floating">
-              <Sparkles className="w-8 h-8 text-white rotating" />
-            </div>
-          </div>
-          <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-tight">
-            Creating your <span className="text-gradient">app</span>
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto text-pretty">
-            Your application would be ready soon.
-          </p>
-          <div className="flex justify-center gap-4">
-            <Button 
-              size="lg"
-              onClick={onPleaseWait}
-              className="btn-gradient px-8 py-4 text-lg font-semibold hover:-translate-y-0.5 transition-all duration-200"
-              aria-live="polite"
-            >
-              Please Wait
-            </Button>
-          </div>
-          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="py-8 md:py-10 lg:py-12">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
-              Time elapsed: <span className="font-medium tabular-nums text-foreground">{formatted}</span>
+              <div className="flex items-center gap-2 mb-2">
+                <CalendarIcon className="h-6 w-6 text-muted-foreground" />
+                <h2 className="text-2xl font-bold text-foreground">Today's Meals</h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={() => changeDate(-1)}><ChevronLeft className="h-4 w-4" /></Button>
+                <span className="font-semibold text-lg text-brand">{format(currentDate, 'MMMM d, yyyy')}</span>
+                <Button variant="ghost" size="icon" onClick={() => changeDate(1)}><ChevronRight className="h-4 w-4" /></Button>
+              </div>
             </div>
-            <div>
-              Coins: <span className="font-medium tabular-nums text-foreground">{count}</span>
-            </div>
+            <Button onClick={handleAddMeal} className="bg-brand hover:bg-brand/90 text-brand-foreground">
+              <Plus className="mr-2 h-4 w-4" /> Log a Meal
+            </Button>
           </div>
-          <div className="flex justify-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => { resetTimer(); resetCount(); toast('Reset complete') }}>
-              Reset
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => { inc(); toast('Coin added') }}>
-              Add Coin
-            </Button>
+          <div className="space-y-4">
+            {isLoading ? (
+              Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-lg" />)
+            ) : sortedMeals.length > 0 ? (
+              <AnimatePresence>
+                {sortedMeals.map((meal) => (
+                  <motion.div
+                    key={meal.id}
+                    layout
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                  >
+                    <MealCard meal={meal} onEdit={handleEditMeal} onDelete={handleDeleteMeal} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            ) : (
+              <div className="text-center py-16 px-6 border-2 border-dashed rounded-lg">
+                <UtensilsCrossed className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-4 text-lg font-semibold text-foreground">No meals logged yet</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Click "Log a Meal" to get started.</p>
+              </div>
+            )}
           </div>
         </div>
-        <footer className="absolute bottom-8 text-center text-muted-foreground/80">
-          <p>Powered by Cloudflare</p>
-        </footer>
-        <Toaster richColors closeButton />
       </div>
+      <AddMealSheet
+        isOpen={isSheetOpen}
+        setIsOpen={setSheetOpen}
+        meal={editingMeal}
+        currentDate={currentDate}
+      />
+      <AlertDialog open={!!deletingMealId} onOpenChange={(open) => !open && setDeletingMealId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this meal entry.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <Toaster richColors />
     </AppLayout>
-  )
+  );
 }

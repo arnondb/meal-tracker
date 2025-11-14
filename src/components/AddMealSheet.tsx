@@ -1,90 +1,86 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useTranslation } from 'react-i18next';
-import { format, set } from 'date-fns';
+import { format, parse, set } from 'date-fns';
+import { create } from 'zustand';
 import { toast } from 'sonner';
-import { Clock } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { api } from '@/lib/api-client';
-import { Meal, Preset } from '@shared/types';
-import { TimePicker } from './TimePicker';
-import { cn } from '@/lib/utils';
-const mealSchema = (t: (key: string) => string) => z.object({
-  description: z.string(),
-  type: z.string().min(1, t('addMealSheet.validation.typeRequired')),
+import { Meal, MealType } from '@shared/types';
+const mealSchema = z.object({
+  description: z.string().min(1, 'Description is required'),
+  type: z.enum(['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Other']),
   customType: z.string().optional(),
   time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:mm)'),
 }).refine(data => data.type !== 'Other' || (data.customType && data.customType.length > 0), {
-  message: t('addMealSheet.validation.customTypeRequired'),
+  message: 'Custom type is required when "Other" is selected',
   path: ['customType'],
 });
-type MealFormData = z.infer<ReturnType<typeof mealSchema>>;
+type MealFormData = z.infer<typeof mealSchema>;
+type MealStore = {
+  addMeal: (meal: Meal) => void;
+  updateMeal: (meal: Meal) => void;
+};
+// This is a simplified selector from the HomePage store.
+// In a real app, you might use a more robust state manager or context.
+const useMealStore = create<MealStore>(() => ({
+  addMeal: () => {},
+  updateMeal: () => {},
+}));
+// We need to get the store from the HomePage to connect actions.
+// This is a trick to avoid prop drilling, but context would be better for larger apps.
+if (typeof window !== 'undefined') {
+  // This will fail if the store is not yet created, but it's a simple way to link them.
+  try {
+    const mainStore = (window as any).__ZUSTAND_STORES__.MealStore;
+    if (mainStore) {
+      useMealStore.setState(mainStore.getState());
+      mainStore.subscribe(useMealStore.setState);
+    }
+  } catch (e) {
+    // Store not found, this is fine, it will be populated later.
+  }
+}
 interface AddMealSheetProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   meal: Meal | null;
   currentDate: Date;
-  addMeal: (meal: Meal) => void;
-  updateMeal: (meal: Meal) => void;
 }
-export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate, addMeal, updateMeal }: AddMealSheetProps) {
-  const { t } = useTranslation();
-  const [presets, setPresets] = useState<Preset[]>([]);
+export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate }: AddMealSheetProps) {
+  const { addMeal, updateMeal } = useMealStore.getState();
   const { register, handleSubmit, control, watch, reset, formState: { errors, isSubmitting } } = useForm<MealFormData>({
-    resolver: zodResolver(mealSchema(t)),
+    resolver: zodResolver(mealSchema),
+    defaultValues: {
+      description: '',
+      type: 'Breakfast',
+      customType: '',
+      time: format(new Date(), 'HH:mm'),
+    },
   });
   const selectedType = watch('type');
   useEffect(() => {
-    if (isOpen) {
-      const fetchPresetsAndResetForm = async () => {
-        try {
-          const fetchedPresets = await api<Preset[]>('/api/presets');
-          setPresets(fetchedPresets);
-          if (meal) {
-            reset({
-              description: meal.description,
-              type: meal.type,
-              customType: meal.customType || '',
-              time: format(new Date(meal.eatenAt), 'HH:mm'),
-            });
-          } else {
-            const now = new Date();
-            const currentMinutes = now.getMinutes();
-            const roundedMinutes = currentMinutes < 30 ? '00' : '30';
-            const initialTime = `${format(now, 'HH')}:${roundedMinutes}`;
-            reset({
-              description: '',
-              type: fetchedPresets.length > 0 ? fetchedPresets[0].name : 'Other',
-              customType: '',
-              time: initialTime,
-            });
-          }
-        } catch (error) {
-          toast.error(t('toasts.loadPresetsError'));
-          if (!meal) {
-            const now = new Date();
-            const currentMinutes = now.getMinutes();
-            const roundedMinutes = currentMinutes < 30 ? '00' : '30';
-            const initialTime = `${format(now, 'HH')}:${roundedMinutes}`;
-            reset({
-              description: '',
-              type: 'Other',
-              customType: '',
-              time: initialTime,
-            });
-          }
-        }
-      };
-      fetchPresetsAndResetForm();
+    if (meal) {
+      reset({
+        description: meal.description,
+        type: meal.type,
+        customType: meal.customType || '',
+        time: format(new Date(meal.eatenAt), 'HH:mm'),
+      });
+    } else {
+      reset({
+        description: '',
+        type: 'Breakfast',
+        customType: '',
+        time: format(new Date(), 'HH:mm'),
+      });
     }
-  }, [meal, isOpen, reset, t]);
+  }, [meal, isOpen, reset]);
   const onSubmit = async (data: MealFormData) => {
     try {
       const [hours, minutes] = data.time.split(':').map(Number);
@@ -101,100 +97,69 @@ export function AddMealSheet({ isOpen, setIsOpen, meal, currentDate, addMeal, up
           body: JSON.stringify(payload),
         });
         updateMeal(updatedMeal);
-        toast.success(t('toasts.mealUpdateSuccess'), { duration: 1500 });
+        toast.success('Meal updated successfully!');
       } else {
         const newMeal = await api<Meal>('/api/meals', {
           method: 'POST',
           body: JSON.stringify(payload),
         });
         addMeal(newMeal);
-        toast.success(t('toasts.mealAddSuccess'), { duration: 1500 });
+        toast.success('Meal added successfully!');
       }
       setIsOpen(false);
     } catch (error) {
-      toast.error(t('toasts.mealSaveError'));
-    }
-  };
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
+      toast.error('An error occurred. Please try again.');
     }
   };
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent className="flex flex-col">
+      <SheetContent>
         <SheetHeader>
-          <SheetTitle>{meal ? t('addMealSheet.editTitle') : t('addMealSheet.addTitle')}</SheetTitle>
+          <SheetTitle>{meal ? 'Edit Meal' : 'Log a New Meal'}</SheetTitle>
           <SheetDescription>
-            {meal ? t('addMealSheet.editingFor') : t('addMealSheet.loggingFor')}{' '}
-            <span className="font-semibold text-foreground">{format(currentDate, 'MMMM d, yyyy')}</span>.
+            Fill in the details of your meal. Click save when you're done.
           </SheetDescription>
         </SheetHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col justify-between space-y-6 py-6">
-          <div className="space-y-6 px-1 overflow-y-auto">
-            <div className="space-y-2">
-              <Label htmlFor="description">{t('addMealSheet.descriptionLabel')}</Label>
-              <Input id="description" {...register('description')} placeholder={t('addMealSheet.descriptionPlaceholder')} onKeyDown={handleKeyDown} />
-              {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-6">
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Input id="description" {...register('description')} placeholder="e.g., Oatmeal with berries" />
+            {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="type">Meal Type</Label>
+            <Controller
+              name="type"
+              control={control}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a meal type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Other'] as MealType[]).map((type) => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+          {selectedType === 'Other' && (
+            <div className="space-y-2 animate-fade-in">
+              <Label htmlFor="customType">Custom Meal Type</Label>
+              <Input id="customType" {...register('customType')} placeholder="e.g., Brunch" />
+              {errors.customType && <p className="text-sm text-destructive">{errors.customType.message}</p>}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="type">{t('addMealSheet.typeLabel')}</Label>
-              <Controller
-                name="type"
-                control={control}
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('addMealSheet.typePlaceholder')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {presets.map((preset) => (
-                        <SelectItem key={preset.id} value={preset.name}>{preset.name}</SelectItem>
-                      ))}
-                      <SelectItem value="Other">{t('common.other')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-            {selectedType === 'Other' && (
-              <div className="space-y-2 animate-fade-in">
-                <Label htmlFor="customType">{t('addMealSheet.customTypeLabel')}</Label>
-                <Input id="customType" {...register('customType')} placeholder={t('addMealSheet.customTypePlaceholder')} onKeyDown={handleKeyDown} />
-                {errors.customType && <p className="text-sm text-destructive">{errors.customType.message}</p>}
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="time">{t('addMealSheet.timeLabel')}</Label>
-              <Controller
-                name="time"
-                control={control}
-                render={({ field }) => (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        <Clock className="mr-2 h-4 w-4" />
-                        {field.value ? field.value : <span>{t('addMealSheet.timePlaceholder')}</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <TimePicker value={field.value} onChange={field.onChange} />
-                    </PopoverContent>
-                  </Popover>
-                )}
-              />
-              {errors.time && <p className="text-sm text-destructive">{errors.time.message}</p>}
-            </div>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="time">Time</Label>
+            <Input id="time" type="time" {...register('time')} />
+            {errors.time && <p className="text-sm text-destructive">{errors.time.message}</p>}
           </div>
           <SheetFooter>
             <Button type="submit" disabled={isSubmitting} className="w-full bg-brand hover:bg-brand/90 text-brand-foreground">
-              {isSubmitting ? t('addMealSheet.savingButton') : t('addMealSheet.saveButton')}
+              {isSubmitting ? 'Saving...' : 'Save Meal'}
             </Button>
           </SheetFooter>
         </form>

@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Meal } from '@shared/types';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 interface MealCardProps {
   meal: Meal;
   onEdit: (meal: Meal) => void;
@@ -22,7 +21,7 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-muted/50">
           <CardTitle className="text-lg font-bold flex items-center gap-2">
             <Utensils className="h-5 w-5 text-brand" />
-            <span>{meal.description || mealTitle}</span>
+            <span>{meal.description}</span>
           </CardTitle>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(meal)}>
@@ -34,16 +33,7 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
           </div>
         </CardHeader>
         <CardContent className="pt-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={`https://api.dicebear.com/8.x/initials/svg?seed=${meal.userName}`} />
-                <AvatarFallback>{meal.userName.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-medium text-muted-foreground">{meal.userName}</span>
-            </div>
-            <Badge variant="outline" className="text-sm hidden sm:inline-flex">{mealTitle}</Badge>
-          </div>
+          <Badge variant="outline" className="text-sm">{mealTitle}</Badge>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
             <span>{format(parseISO(meal.eatenAt), 'h:mm a')}</span>

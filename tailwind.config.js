@@ -24,7 +24,8 @@ export default {
   				'Fira Code',
   				'Consolas',
   				'monospace'
-  			]
+  			],
+        heading: ['"Fredericka the Great"', 'cursive'],
   		},
   		fontSize: {
   			'2xs': [
@@ -101,6 +102,10 @@ export default {
   				DEFAULT: 'hsl(var(--primary))',
   				foreground: 'hsl(var(--primary-foreground))'
   			},
+        brand: {
+          DEFAULT: 'hsl(var(--brand))',
+          foreground: 'hsl(var(--brand-foreground))',
+        },
   			border: 'hsl(var(--border))',
   			ring: 'hsl(var(--ring))',
   			card: {
