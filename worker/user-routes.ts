@@ -1,13 +1,20 @@
-import { Hono } from "hono";
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { logger } from 'hono/logger';
 import type { Env } from './core-utils';
-import { AuthUserEntity, FamilyEntity, MealEntity, PresetEntity } from "./entities";
+import { AuthUserEntity, FamilyEntity, MealEntity, PresetEntity, Index } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
 import { AuthUser, Family, Meal, Preset } from "@shared/types";
 import { startOfDay, endOfDay, parseISO, isWithinInterval } from 'date-fns';
 import { authMiddleware, AuthVariables } from './auth';
-export const userRoutes = new Hono<{ Bindings: Env; Variables: AuthVariables }>();
+export const app = new Hono<{ Bindings: Env; Variables: AuthVariables }>();
+// --- MIDDLEWARE ---
+app.use('*', logger());
+app.use('/api/*', cors({ origin: '*', allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowHeaders: ['Content-Type', 'Authorization'] }));
+// --- PUBLIC ROUTES ---
+app.get('/api/health', (c) => c.json({ success: true, data: { status: 'healthy', timestamp: new Date().toISOString() }}));
 // --- PUBLIC AUTH ROUTES ---
-userRoutes.post('/api/auth/register', async (c) => {
+app.post('/api/auth/register', async (c) => {
   const body = await c.req.json<{ name?: string; email?: string; password?: string }>();
   if (!isStr(body.name) || !isStr(body.email) || !isStr(body.password)) {
     return bad(c, 'Name, email, and password are required');
@@ -15,7 +22,6 @@ userRoutes.post('/api/auth/register', async (c) => {
   if (body.password.length < 6) {
     return bad(c, 'Password must be at least 6 characters');
   }
-  // Check if user already exists
   const existingUser = new AuthUserEntity(c.env, body.email, 'email');
   if (await existingUser.exists()) {
     return bad(c, 'An account with this email already exists');
@@ -24,10 +30,8 @@ userRoutes.post('/api/auth/register', async (c) => {
   const token = crypto.randomUUID();
   const familyId = crypto.randomUUID();
   const joinCode = crypto.randomUUID().substring(0, 8).toUpperCase();
-  // Create new family
   const family: Family = { id: familyId, joinCode };
   await FamilyEntity.create(c.env, family);
-  // Create new user
   const newUser: AuthUser = {
     id: userId,
     name: body.name,
@@ -35,13 +39,12 @@ userRoutes.post('/api/auth/register', async (c) => {
     familyId: familyId,
     token: token,
   };
-  // Store user by ID, email, and token
   await new AuthUserEntity(c.env, userId, 'id').save(newUser);
   await new AuthUserEntity(c.env, body.email, 'email').save(newUser);
   await new AuthUserEntity(c.env, token, 'token').save(newUser);
   return ok(c, { token });
 });
-userRoutes.post('/api/auth/login', async (c) => {
+app.post('/api/auth/login', async (c) => {
   const body = await c.req.json<{ email?: string; password?: string }>();
   if (!isStr(body.email) || !isStr(body.password)) {
     return bad(c, 'Email and password are required');
@@ -50,14 +53,12 @@ userRoutes.post('/api/auth/login', async (c) => {
   if (!(await userEntity.exists())) {
     return bad(c, 'Invalid credentials');
   }
-  // NOTE: In a real app, you'd hash and compare passwords.
-  // For this project, we'll assume the password is correct if the user exists.
   const user = await userEntity.getState();
   return ok(c, { token: user.token });
 });
 // --- PROTECTED ROUTES ---
-userRoutes.use('/api/*', authMiddleware);
-userRoutes.get('/api/auth/me', async (c) => {
+app.use('/api/*', authMiddleware);
+app.get('/api/auth/me', async (c) => {
   const user = c.get('user');
   let family: Family | null = null;
   if (user.familyId) {
@@ -68,20 +69,17 @@ userRoutes.get('/api/auth/me', async (c) => {
   }
   return ok(c, { user, family });
 });
-userRoutes.post('/api/families/join', async (c) => {
+app.post('/api/families/join', async (c) => {
   const user = c.get('user');
   const { joinCode } = await c.req.json<{ joinCode?: string }>();
   if (!isStr(joinCode)) {
     return bad(c, 'Join code is required');
   }
-  // This is inefficient but necessary without a reverse index on joinCode.
-  // In a real app, you'd use a more scalable lookup method (e.g., KV or another index).
   const { items: allFamilies } = await FamilyEntity.list(c.env);
   const targetFamily = allFamilies.find(f => f.joinCode === joinCode);
   if (!targetFamily) {
     return bad(c, 'Invalid join code');
   }
-  // Update user's familyId
   const updatedUser: AuthUser = { ...user, familyId: targetFamily.id };
   await new AuthUserEntity(c.env, user.id, 'id').save(updatedUser);
   await new AuthUserEntity(c.env, user.email, 'email').save(updatedUser);
@@ -89,7 +87,7 @@ userRoutes.post('/api/families/join', async (c) => {
   return ok(c, targetFamily);
 });
 // MEALS
-userRoutes.get('/api/meals', async (c) => {
+app.get('/api/meals', async (c) => {
   const user = c.get('user');
   if (!user.familyId) return ok(c, []);
   const dateQuery = c.req.query('date');
@@ -120,7 +118,7 @@ userRoutes.get('/api/meals', async (c) => {
   }
   return ok(c, familyMeals);
 });
-userRoutes.post('/api/meals', async (c) => {
+app.post('/api/meals', async (c) => {
   const user = c.get('user');
   if (!user.familyId) return bad(c, 'You must be in a family to log a meal.');
   const body = await c.req.json<Partial<Meal>>();
@@ -140,19 +138,7 @@ userRoutes.post('/api/meals', async (c) => {
   const created = await MealEntity.create(c.env, newMeal);
   return ok(c, created);
 });
-userRoutes.put('/api/meals/:id', async (c) => {
-  const user = c.get('user');
-  if (!user.familyId) return bad(c, 'Unauthorized');
-  const id = c.req.param('id');
-  const body = await c.req.json<Partial<Meal>>();
-  const mealEntity = new MealEntity(c.env, id);
-  if (!(await mealEntity.exists()) || (await mealEntity.getState()).familyId !== user.familyId) {
-    return notFound(c, 'Meal not found');
-  }
-  await mealEntity.patch(body);
-  return ok(c, await mealEntity.getState());
-});
-userRoutes.delete('/api/meals/:id', async (c) => {
+app.delete('/api/meals/:id', async (c) => {
   const user = c.get('user');
   if (!user.familyId) return bad(c, 'Unauthorized');
   const id = c.req.param('id');
@@ -164,14 +150,14 @@ userRoutes.delete('/api/meals/:id', async (c) => {
   return ok(c, { id, deleted });
 });
 // PRESETS
-userRoutes.get('/api/presets', async (c) => {
+app.get('/api/presets', async (c) => {
   const user = c.get('user');
   if (!user.familyId) return ok(c, []);
   const { items } = await PresetEntity.list(c.env);
   const familyPresets = items.filter(p => p.familyId === user.familyId);
   return ok(c, familyPresets);
 });
-userRoutes.post('/api/presets', async (c) => {
+app.post('/api/presets', async (c) => {
   const user = c.get('user');
   if (!user.familyId) return bad(c, 'You must be in a family to create a preset.');
   const body = await c.req.json<{ name?: string }>();
@@ -186,7 +172,7 @@ userRoutes.post('/api/presets', async (c) => {
   const created = await PresetEntity.create(c.env, newPreset);
   return ok(c, created);
 });
-userRoutes.delete('/api/presets/:id', async (c) => {
+app.delete('/api/presets/:id', async (c) => {
   const user = c.get('user');
   if (!user.familyId) return bad(c, 'Unauthorized');
   const id = c.req.param('id');
@@ -196,4 +182,28 @@ userRoutes.delete('/api/presets/:id', async (c) => {
   }
   const deleted = await PresetEntity.delete(c.env, id);
   return ok(c, { id, deleted });
+});
+// --- ADMIN ROUTES ---
+app.post('/api/admin/reset-database', async (c) => {
+  // In a real app, this would be protected by a separate admin-level middleware.
+  // For this project, any authenticated user can reset the DB.
+  console.warn(`[ADMIN] Database reset initiated by user: ${c.get('user').id}`);
+  try {
+    // Get a single DO stub to perform the deleteAll operation.
+    // The name 'RESET_STUB' is arbitrary; it just needs to be consistent.
+    const doId = c.env.GlobalDurableObject.idFromName('RESET_STUB');
+    const stub = c.env.GlobalDurableObject.get(doId);
+    // Call a new method on the stub to wipe all data.
+    await stub.deleteAll();
+    return ok(c, { message: 'Database has been reset successfully.' });
+  } catch (error) {
+    console.error('[ADMIN] Database reset failed:', error);
+    return c.json({ success: false, error: 'Failed to reset database.' }, 500);
+  }
+});
+// --- ERROR HANDLING ---
+app.notFound((c) => c.json({ success: false, error: 'Not Found' }, 404));
+app.onError((err, c) => { 
+  console.error(`[ERROR] ${err}`); 
+  return c.json({ success: false, error: 'Internal Server Error' }, 500); 
 });
