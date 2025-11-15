@@ -1,4 +1,4 @@
-# ChronoPlate
+# MealTracker
 
 An elegant and illustrative meal tracking application to log and review your daily nutrition with ease.
 
