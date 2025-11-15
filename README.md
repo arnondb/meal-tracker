@@ -2,7 +2,7 @@
 
 An elegant and illustrative meal tracking application to log and review your daily nutrition with ease.
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/arnondb/meal-tracker)
 
 ChronoPlate is a visually stunning and whimsical meal tracking application designed with a human-centered aesthetic. It allows users to effortlessly log their daily meals, including descriptions, types, and specific date/time. The core experience is centered around a beautiful dashboard that provides an at-a-glance view of the day's meals.
 
@@ -75,7 +75,7 @@ This application is designed for easy deployment to Cloudflare's global network.
 
 Alternatively, you can deploy your own version of this project with a single click.
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/arnondb/meal-tracker)
 
 ## 📂 Project Structure
 
